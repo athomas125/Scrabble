@@ -8,7 +8,7 @@ class ScrabbleBoard:
     """
     Represents a Scrabble board.
     """
-    def __init__(self):
+    def __init__(self, number_of_players):
         """
         Initializes the Scrabble board as a 15x15 grid of empty squares, and the multiplier board.
         """
@@ -29,7 +29,7 @@ class ScrabbleBoard:
             [' ', '2W', ' ', ' ', ' ', '3L', ' ', ' ', ' ', '3L', ' ', ' ', ' ', '2W', ' '],
             ['3W', ' ', ' ', '2L', ' ', ' ', ' ', '3W', ' ', ' ', ' ', '2L', ' ', ' ', '3W']
         ]
-
+        self.scores = [0] * number_of_players
 
 
         with open('letter_distribution.json', 'r') as f:
@@ -37,6 +37,25 @@ class ScrabbleBoard:
         with open('letter_points.json', 'r') as f:
             self.scores = json.load(f)
 
+
+    def get_scores(self):
+        """return the list of scores of the players in the game
+
+        Returns:
+            list(int): list of integer scores
+        """
+        return self.scores
+
+
+    def update_scores(self, player_index, score):
+        """updates the total score of a given player given a turn score
+
+        Args:
+            player_index (int): index of the player
+            score (int): score to be added to the players total score
+        """
+        self.scores[player_index] += score
+    
 
     def draw_letters(self, num_letters):
         """
@@ -67,6 +86,49 @@ class ScrabbleBoard:
 
         return drawn_letters
 
+
+    def get_multipliers(self, row, col, word, direction):
+        """
+        Gets the letter and word multipliers for a potential word.
+
+        Args:
+            row (int): The starting row to place the word.
+            col (int): The starting column to place the word.
+            word (str): The word to be placed.
+            direction (str): The direction to place the word. Must be 'across' or 'down'.
+
+        Returns:
+            tuple: Two lists of integers representing the letter and word multipliers respectively.
+        """
+        letter_multiplier_list = []
+        word_multiplier_list = []
+
+        for i in range(len(word)):
+            if direction == 'across':
+                multiplier = self.board[row][col + i]
+            elif direction == 'down':
+                multiplier = self.board[row + i][col]
+            else:
+                raise ValueError("Direction must be 'across' or 'down'.")
+
+            # Convert multiplier to number
+            if multiplier == '2L':
+                letter_multiplier_list.append(2)
+                word_multiplier_list.append(1)
+            elif multiplier == '3L':
+                letter_multiplier_list.append(3)
+                word_multiplier_list.append(1)
+            elif multiplier == '2W':
+                letter_multiplier_list.append(1)
+                word_multiplier_list.append(2)
+            elif multiplier == '3W':
+                letter_multiplier_list.append(1)
+                word_multiplier_list.append(3)
+            else:  # No multiplier
+                letter_multiplier_list.append(1)
+                word_multiplier_list.append(1)
+
+        return letter_multiplier_list, word_multiplier_list
 
 
     def place_word(self, row, col, word, direction):
