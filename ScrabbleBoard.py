@@ -12,8 +12,7 @@ class ScrabbleBoard:
         """
         Initializes the Scrabble board as a 15x15 grid of empty squares, and the multiplier board.
         """
-        self.board = [[' ' for _ in range(15)] for _ in range(15)]
-        self.multipliers = [
+        self.board = [
             ['3W', ' ', ' ', '2L', ' ', ' ', ' ', '3W', ' ', ' ', ' ', '2L', ' ', ' ', '3W'],
             [' ', '2W', ' ', ' ', ' ', '3L', ' ', ' ', ' ', '3L', ' ', ' ', ' ', '2W', ' '],
             [' ', ' ', '2W', ' ', ' ', ' ', '2L', ' ', '2L', ' ', ' ', ' ', '2W', ' ', ' '],
