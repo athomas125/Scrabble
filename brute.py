@@ -42,13 +42,15 @@ def get_words(trie, letters, prefix='', words=None):
 trie = load_words_into_trie('Collins Scrabble Words (2019).txt')
 
 # default letters
-letters = 'A'
-
+letters = ['A']
+board = ScrabbleBoard()
+letters += board.draw_letters(6)
+print(letters)
 # letters = input('enter your letters: ').upper()
 valid_words = get_words(trie, letters)
 valid_words = sorted(valid_words, key=len)[::-1]
 
-board = ScrabbleBoard()
+
 # need to update this
 # board.display_board()
 
