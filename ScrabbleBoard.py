@@ -32,13 +32,13 @@ class ScrabbleBoard:
         Raises:
             ValueError: If num_letters is greater than the total number of letters remaining.
         """
-        letters = list(self.letters_to_draw_from.keys())
-        counts = list(self.letters_to_draw_from.values())
+        # Flatten the dictionary into a list of letters
+        letters = [letter for letter, count in self.letters_to_draw_from.items() for _ in range(count)]
         
-        if num_letters > sum(counts):
+        if num_letters > len(letters):
             raise ValueError('Not enough letters left to draw')
 
-        drawn_letters = random.choices(letters, weights=counts, k=num_letters)
+        drawn_letters = random.sample(letters, num_letters)
 
         # Update the counts of the drawn letters
         for letter in drawn_letters:
@@ -47,6 +47,7 @@ class ScrabbleBoard:
                 del self.letters_to_draw_from[letter]  # remove the letter if there's no more left
 
         return drawn_letters
+
 
 
     def place_word(self, row, col, word, direction):
