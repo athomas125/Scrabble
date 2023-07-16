@@ -30,6 +30,7 @@ class ScrabbleBoard:
             ['3W', ' ', ' ', '2L', ' ', ' ', ' ', '3W', ' ', ' ', ' ', '2L', ' ', ' ', '3W']
         ]
         self.scores = [0] * number_of_players
+        self.is_first_turn = True
 
 
         with open('letter_distribution.json', 'r') as f:
@@ -56,6 +57,14 @@ class ScrabbleBoard:
         """
         self.scores[player_index] += score
     
+    
+    def get_is_first_turn(self):
+        """Returns whether it is the first turn
+
+        Returns:
+            bool: is it the first turn?
+        """
+        return self.is_first_turn
 
     def draw_letters(self, num_letters):
         """
@@ -144,6 +153,7 @@ class ScrabbleBoard:
         Returns:
             bool: True if the word was successfully placed, False otherwise.
         """
+        self.is_first_turn = False
         if direction == 'across':
             if col + len(word) > 15:
                 return False
@@ -168,7 +178,41 @@ class ScrabbleBoard:
             for j in range(15):
                 print(self.board[i][j], end=' ')
             print()  # Newline after each row
+    
+    
+    def get_board(self):
+        """outputs the board
 
+        Returns:
+            List[List(str)]: its the board
+        """
+        return self.board
+
+
+    def can_play_word(self, row, col, word, direction):
+        """checks if a given word can be played from a certain direction
+
+        Args:
+            row (int): starting row index
+            col (int): starting column index
+            word (str): wrod to play
+            direction (str): direction of play
+
+        Returns:
+            bool: whether the word is valid or not
+        """
+        word = len(word)
+        
+        # TODO: add a check for valid words from attached words
+        
+        # if the length of the word plus the starting position is out of bounds, return False
+        if direction == 'across':
+            if col + len(word) >= 15:
+                return False
+        elif direction == 'down':
+            if row + len(word) >= 15:
+                return False
+        return True
 
     def calculate_score(self, letters, letter_multiplier_list, word_multiplier_list):
         """
