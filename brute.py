@@ -27,11 +27,11 @@ def load_words_into_trie(file_name):
 
 def get_words(trie, letters, prefix='', words=None):
     if words is None:
-        words = []
+        words = set()
     if prefix:
         valid_word, valid_prefix = trie.search(prefix)
         if valid_word:
-            words.append(prefix)
+            words.add(prefix)
         if not valid_prefix:
             return words
     for i, letter in enumerate(letters):
@@ -48,27 +48,26 @@ def get_words(trie, letters, prefix='', words=None):
 # Load the words from the dictionary file into the Trie
 trie = load_words_into_trie('Collins Scrabble Words (2019).txt')
 
-# default letters
-times = []
-board = ScrabbleBoard()
-for i in range(16):
-    letters = board.draw_letters(7)
-    # letters = ['S', 'A', 'E', ' ', 'R', 'T', ' ']
-    print(letters)
-    # letters = input('enter your letters: ').upper()
-    start = time.time()
-    valid_words = get_words(trie, letters)
-    end = time.time()
-    print(end-start)
-    times.append(end-start)
-print(max(times))
+# initialize the board
+board = ScrabbleBoard(1)
+
+hand = board.draw_letters(7)
+for _ in range(1):
+    drawn_letters = board.draw_letters(7 -len(hand))
+    
+    # hand = ['U', 'Q', 'E', 'A', 'I', 'A', 'K']
+    # hand = input('enter your letters: ').upper()
+    print(hand)
+    valid_words = get_words(trie, hand)
+    print(valid_words)
+
 valid_words = sorted(valid_words, key=len)[::-1]
 
 
-# need to update this
+# # need to update this
 # board.display_board()
 
-# print(valid_words)
+print(valid_words)
 
 # # saving words to ouput file
 # with open(letters + '.txt', 'w') as handle:
