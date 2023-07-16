@@ -13,6 +13,7 @@ class ScrabbleBoard:
         Initializes the Scrabble board as a 15x15 grid of empty squares.
         """
         self.board = [[' ' for _ in range(15)] for _ in range(15)]
+        
         with open('letter_distribution.json', 'r') as f:
             self.letters_to_draw_from = json.load(f)
         with open('letter_points.json', 'r') as f:
@@ -36,7 +37,7 @@ class ScrabbleBoard:
         letters = [letter for letter, count in self.letters_to_draw_from.items() for _ in range(count)]
 
         if num_letters > len(letters):
-            raise ValueError('Not enough letters left to draw')
+            num_letters = len(letters)
 
         drawn_letters = random.sample(letters, num_letters)
 
