@@ -31,6 +31,8 @@ class ScrabbleBoard:
         ]
         self.scores = [0] * number_of_players
         self.is_first_turn = True
+        self.letter_locations = []
+        self.valid_play_squares = ['3W', '3L', '2W', '2L', ' ']
 
 
         with open('letter_distribution.json', 'r') as f:
@@ -140,7 +142,7 @@ class ScrabbleBoard:
         return letter_multiplier_list, word_multiplier_list
 
 
-    def place_word(self, row, col, word, direction):
+    def place_word(self, row, col, word, direction, player, num_letters_from_hand):
         """
         Places a word on the Scrabble board.
 
@@ -149,24 +151,26 @@ class ScrabbleBoard:
             col (int): The starting column to place the word.
             word (str): The word to be placed.
             direction (str): The direction to place the word. Must be 'across' or 'down'.
+            player(int): The player index
+            num_letters_from_hand(int): number of letters in the word coming from the players hand
 
         Returns:
             bool: True if the word was successfully placed, False otherwise.
         """
+        if self.can_play_word(row, col, word, direction):
+            letter_multipliers, word_multipliers = self.get_multipliers(row, col, word, direction)
+            if direction == 'across':
+                for i, letter in enumerate(word):
+                    self.board[row][col + i] = letter
+                    self.letter_locations.append((row, col + i))
+            elif direction == 'down':
+                for i, letter in enumerate(word):
+                    self.board[row + i][col] = letter
+                    self.letter_locations.append((row + i, col))
+        
         self.is_first_turn = False
-        if direction == 'across':
-            if col + len(word) > 15:
-                return False
-            for i, letter in enumerate(word):
-                self.board[row][col + i] = letter
-        elif direction == 'down':
-            if row + len(word) > 15:
-                return False
-            for i, letter in enumerate(word):
-                self.board[row + i][col] = letter
-        else:
-            raise ValueError("Direction must be 'across' or 'down'.")
-
+        self.scores[player] = self.calculate_score(word, letter_multipliers, word_multipliers, num_letters_from_hand)
+        
         return True
 
 
@@ -201,20 +205,41 @@ class ScrabbleBoard:
         Returns:
             bool: whether the word is valid or not
         """
-        word = len(word)
+        word_len = len(word)
         
         # TODO: add a check for valid words from attached words
         
-        # if the length of the word plus the starting position is out of bounds, return False
-        if direction == 'across':
+        valid  = False
+        # currently limiting search to avoid any crossovers
+        if self.is_first_turn:
+            return True
+        elif direction == 'across':
+            # if the length of the word plus the starting position is out of bounds, return False
             if col + len(word) >= 15:
                 return False
+            # check if there is anything above/below
+            for i in range(len(word)):
+                if col + 1 < 15 and self.board[row+i][col+1] not in self.valid_play_squares or \
+                col - 1 > 0 and self.board[row+i][col+1] not in self.valid_play_squares:
+                    return False
+                if (row, col + i) in self.letter_locations:
+                    valid = True
         elif direction == 'down':
+            # if the length of the word plus the starting position is out of bounds, return False
             if row + len(word) >= 15:
                 return False
-        return True
+            # check if there is anything above/below
+            for i in range(len(word)):
+                if row + 1 < 15 and self.board[row+1][col] not in self.valid_play_squares or \
+                row - 1 > 0 and self.board[row+1][col] not in self.valid_play_squares:
+                    return False
+                if (row + i, col) in self.letter_locations:
+                    valid = True
+        else:
+            raise ValueError("Direction must be 'across' or 'down'.")
+        return valid
 
-    def calculate_score(self, letters, letter_multiplier_list, word_multiplier_list):
+    def calculate_score(self, letters, letter_multiplier_list, word_multiplier_list, num_letters_from_hand):
         """
         Calculates the score of a word based on letter scores and multipliers.
 
@@ -250,4 +275,6 @@ class ScrabbleBoard:
             for multiplier in word_multiplier_list:
                 word_multiplier *= multiplier
             score *= word_multiplier
+            if num_letters_from_hand == 7:
+                score += 50
             return score
