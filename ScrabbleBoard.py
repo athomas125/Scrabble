@@ -32,6 +32,7 @@ class ScrabbleBoard:
         self.scores = [0] * number_of_players
         self.is_first_turn = True
         self.letter_locations = []
+        # a list of board squares string values that are valid to play on top of
         self.valid_play_squares = ['3W', '3L', '2W', '2L', ' ']
 
 
