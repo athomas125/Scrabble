@@ -41,7 +41,7 @@ class ScrabbleBoard:
         with open('letter_points.json', 'r') as f:
             self.scores = json.load(f)
 
-
+    
     def get_scores(self):
         """return the list of scores of the players in the game
 
@@ -179,10 +179,20 @@ class ScrabbleBoard:
         """
         Prints the current state of the Scrabble board.
         """
-        for i in range(15):
-            for j in range(15):
-                print(self.board[i][j], end=' ')
-            print()  # Newline after each row
+        # print to put on a new line
+        print()
+        # Find the maximum length of the strings in the 2D list
+        max_length = max(len(item) for row in self.board for item in row)
+
+        # Iterate over the rows in the 2D list
+        for row in self.board:
+            # For each item in the row, print it left-justified to the max_length
+            # Also add a space for readability
+            print(' '.join(item.ljust(max_length) for item in row))
+        # for i in range(15):
+        #     for j in range(15):
+        #         print(self.board[i][j], end=' ')
+        #     print()  # Newline after each row
     
     
     def get_board(self):
