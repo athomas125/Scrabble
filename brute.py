@@ -210,26 +210,37 @@ class Brute:
                     ind = 0
                     minl = 15
                     maxl = -1
+                    # using prev_blank sets maxl to be the first letter in of the final string
+                    # of connected letters in desired direction
+                    prev_blank = -1
                     # want to check to see if there are any intersecting letters in the play direction
-                    if direction == 'across' and row not in searched_rows:
-                        searched_rows.append(row)
-                        for j in range(15):
-                            if self.game.board[row][j] not in self.game.valid_play_squares:
-                                fl_ind.append(j)
-                                fl_let.append(self.game.board[row][j])
-                                ind += 1
-                                if minl == 15:
-                                    minl = j
-                                maxl = j
-                    elif col not in searched_cols:
-                        searched_cols.append(col)
-                        for j in range(15):
-                            if self.game.board[j][col] not in self.game.valid_play_squares:
-                                fl_ind.append(j)
-                                fl_let.append(self.game.board[j][col])
-                                if minl == 15:
-                                    minl = j
-                                maxl = j
+                    if direction == 'across':
+                        if row not in searched_rows:
+                            searched_rows.append(row)
+                            for j in range(15):
+                                if self.game.board[row][j] not in self.game.valid_play_squares:
+                                    fl_ind.append(j)
+                                    fl_let.append(self.game.board[row][j])
+                                    ind += 1
+                                    if minl == 15:
+                                        minl = j
+                                    if j - prev_blank == 1:
+                                        maxl = j
+                                else:
+                                    prev_blank = j
+                    elif direction == 'down':
+                        if col not in searched_cols:
+                            searched_cols.append(col)
+                            for j in range(15):
+                                if self.game.board[j][col] not in self.game.valid_play_squares:
+                                    fl_ind.append(j)
+                                    fl_let.append(self.game.board[j][col])
+                                    if minl == 15:
+                                        minl = j
+                                    if j - prev_blank == 1:
+                                        maxl = j
+                                else:
+                                    prev_blank = j
                     else:
                         continue
                     # if no min is set, then there are no letters in this search space
