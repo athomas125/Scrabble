@@ -96,7 +96,7 @@ class Brute:
             if direction == 'across':
                 combined_word = self.get_branched_word(row, col+i, 'down', letter)
             elif direction == 'down':
-                combined_word = self.get_branched_word(row, col+i, 'across', letter)
+                combined_word = self.get_branched_word(row+i, col, 'across', letter)
             else:
                 raise ValueError("direction must be 'across' or 'down'.")
             # check if combined_word exists and is valid
@@ -269,6 +269,8 @@ class Brute:
                                         ll_ind = letters_left.index(' ')
                                     letters_left = letters_left[:ll_ind] + letters_left[ll_ind+1:]
                                 words += self.get_words(letters_left, prefix=p, fixed_letter_indices=fl_ind, fixed_letters=fl_let)
+                        elif fl_ind[0] == 0:
+                            words += self.get_words(self.hand, fixed_letter_indices=fl_ind, fixed_letters=fl_let)
                         for word in words:
                             if self.game.can_play_word(row, col, word, direction) and self.check_validity(row, col, word, direction):
                                 letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, direction)
