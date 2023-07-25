@@ -118,26 +118,62 @@ class Brute:
             # TODO: Implement this
             # compute all words that are made out of our letters so that 
             # we have a set of prefixes to use to check for more words
-            # prefixes = self.get_prefixes(self.hand)
-            # sorted_dict = {}
-            # for prefix in prefixes:
-            #     length = len(prefix)
-            #     if length not in sorted_dict:
-            #         sorted_dict[length] = []
-            #     sorted_dict[length].append(prefix)
+            prefixes = self.get_prefixes(self.hand)
+            sorted_dict = {}
+            for prefix in prefixes:
+                length = len(prefix)
+                if length not in sorted_dict:
+                    sorted_dict[length] = []
+                sorted_dict[length].append(prefix)
 
             # here you want to check both directions and all possible play locations
             # TODO: update full board search to just search to play off where there are letters
+            searched_rows = []
+            searched_cols = []
             for i, item in enumerate(self.Game.letter_locations):
                 row = item[0]
                 col = item[1]
-                letter = self.Game.board[item[0]][item[1]]
+                letter = self.Game.board[row][col]
                 for direction in ['across', 'down']:
                     # TODO: update this so that it accounts for other words on the board
-                    fl = {}
-                    for i in range(8):
-                        fl[i] = letter
+                    fl_ind = []
+                    fl_let = []
+                    ind = 0
+                    minl = 15
+                    maxl = -1
+                    # want to check to see if there are any intersecting letters in the play direction
+                    if direction == 'across' and row not in searched_rows:
+                        for j in range(15):
+                            if self.Game.board[row][j] not in self.Game.valid_play_squares:
+                                fl_ind[ind] = j
+                                fl_let[ind] = self.Game.board[row][j]
+                                ind += 1
+                                if minl == 15:
+                                    minl = j
+                                maxl = j
+                    elif col not in searched_cols:
+                        for j in range(15):
+                            if self.Game.board[j][col] not in self.Game.valid_play_squares:
+                                fl_ind[ind] = j
+                                fl_let[ind] = self.Game.board[j][col]
+                                if minl == 15:
+                                    minl = j
+                                maxl = j
+                    else:
+                        continue
+                    # if no min is set, then there are no letters in this search space
+                    if minl == 15:
+                        continue
+                    
+                    for i in range(max(minl-7, 0), min(maxl+7, 15)):
+                        if i > 0:
+                            try:
+                                del(fl[i-1])
+                            except KeyError:
+                                continue
                         # Check if word can be played in this position
+                        
+                        
                         words = self.get_words(self.hand, fixed_letters=fl)
                         for word in words:
                             if self.Game.can_play_word(row, col, word, direction):
