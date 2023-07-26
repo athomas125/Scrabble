@@ -83,15 +83,17 @@ class Brute:
             valid_word, valid_prefix = self.brain.search(prefix)
             if not valid_prefix:
                 return prefixes
+            else:
+                prefixes.add(prefix)
 
         for i, letter in enumerate(letters):
             new_letters = list(letters)
             new_letters.pop(i)
             if letter == ' ':
                 for wildcard in string.ascii_uppercase:
-                    self.get_words(new_letters, prefix + wildcard, prefixes)
+                    self.get_prefixes(new_letters, prefix + wildcard, prefixes)
             else:
-                self.get_words(new_letters, prefix + letter, prefixes)
+                self.get_prefixes(new_letters, prefix + letter, prefixes)
         return prefixes
 
     def check_validity(self, row, col, word, direction):
