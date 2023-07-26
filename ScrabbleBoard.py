@@ -223,11 +223,11 @@ class ScrabbleBoard:
             return True
         elif direction == 'across':
             # if the length of the word plus the starting position is out of bounds, return False
-            if col + len(word) >= 15:
+            if col + len(word)-1 >= 15:
                 return False
         elif direction == 'down':
             # if the length of the word plus the starting position is out of bounds, return False
-            if row + len(word) >= 15:
+            if row + len(word)-1 >= 15:
                 return False
         else:
             raise ValueError("Direction must be 'across' or 'down'.")
