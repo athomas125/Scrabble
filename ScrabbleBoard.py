@@ -29,7 +29,7 @@ class ScrabbleBoard:
             [' ', '2W', ' ', ' ', ' ', '3L', ' ', ' ', ' ', '3L', ' ', ' ', ' ', '2W', ' '],
             ['3W', ' ', ' ', '2L', ' ', ' ', ' ', '3W', ' ', ' ', ' ', '2L', ' ', ' ', '3W']
         ]
-        self.scores = [0] * number_of_players
+        self.player_scores = [0] * number_of_players
         self.is_first_turn = True
         self.letter_locations = []
         # a list of board squares string values that are valid to play on top of
@@ -39,26 +39,26 @@ class ScrabbleBoard:
         with open('letter_distribution.json', 'r') as f:
             self.letters_to_draw_from = json.load(f)
         with open('letter_points.json', 'r') as f:
-            self.scores = json.load(f)
+            self.letter_scores = json.load(f)
 
     
-    def get_scores(self):
+    def get_player_scores(self):
         """return the list of scores of the players in the game
 
         Returns:
             list(int): list of integer scores
         """
-        return self.scores
+        return self.player_scores
 
 
-    def update_scores(self, player_index, score):
+    def update_Player_scores(self, player_index, score):
         """updates the total score of a given player given a turn score
 
         Args:
             player_index (int): index of the player
             score (int): score to be added to the players total score
         """
-        self.scores[player_index] += score
+        self.player_scores[player_index] += score
     
     
     def get_is_first_turn(self):
@@ -170,7 +170,7 @@ class ScrabbleBoard:
                     self.letter_locations.append((row + i, col))
         
         self.is_first_turn = False
-        self.scores[player] = self.calculate_score(word, letter_multipliers, word_multipliers, num_letters_from_hand)
+        self.player_scores[player] = self.calculate_score(word, letter_multipliers, word_multipliers, num_letters_from_hand)
         
         return True
 
@@ -259,7 +259,7 @@ class ScrabbleBoard:
         else:
             score = 0
             for letter, multiplier in zip(letters, letter_multiplier_list):
-                letter_score = self.scores[letter]
+                letter_score = self.letter_scores[letter]
                 score += letter_score * multiplier
 
             word_multiplier = 1

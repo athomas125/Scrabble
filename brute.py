@@ -256,6 +256,7 @@ class Brute:
                             if len(fl_ind) > 0 and fl_ind[0] < 0:
                                 del fl_ind[0]
                                 del fl_let[0]
+                                continue
                         # Check if word can be played in this position
                         if direction == 'across':
                             col = j
@@ -287,11 +288,11 @@ class Brute:
                                 letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, direction)
                                 # Calculate score
                                 # use the fixed letters to determine the letters from hand
-                                # TODO: Check this
                                 letters_from_hand = word
                                 for k in reversed(fl_ind):
                                     if k < len(word):
                                         letters_from_hand = letters_from_hand[:k] + letters_from_hand[k+1:]
+                                # TODO: somehow update the calculate score call to handle putting down blanks
                                 score = self.game.calculate_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
                                 if score > best_score:
                                     best_word = word
@@ -314,14 +315,16 @@ class Brute:
             index = self.hand.index(letter)
             self.hand = self.hand[0:index] + self.hand[index + 1:]
         self.game.display_board()
-        print("hand was: " + str(temp_hand) + "\nword: "+ word + "\nnumber of points: " + str(self.game.get_scores()[self.number]))
+        print("hand was: " + str(temp_hand) + "\nword: "+ word + "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))
         self.hand += self.game.draw_letters(len(letters_from_hand))
         print("new hand" + str(self.hand))
 
 # initialize the board
 Game = ScrabbleBoard(1)
 brute_1 = Brute(Game, 1)
+brute_2 = Brute(Game, 2)
 go_again = 'yep'
 while go_again != 'stop':
     brute_1.do_turn()
+    brute_2.do_turn()
     go_again = input("type stop to stop, otherwise it will do another turn: ")
