@@ -183,7 +183,6 @@ class Brute:
                         best_position = (row, col)
                         best_direction = 'across'
         else:
-            # TODO: Implement this
             # compute all words that are made out of our letters so that 
             # we have a set of prefixes to use to check for more words
             prefixes = self.get_prefixes(self.hand)
@@ -195,14 +194,12 @@ class Brute:
                 sorted_prefixes[length].append(prefix)
 
             # here you want to check both directions and all possible play locations
-            # TODO: update full board search to just search to play off where there are letters
             searched_rows = []
             searched_cols = []
-            # TODO: fix overwriting of other words
+            # TODO: check for overwriting of other words
             for i, item in enumerate(self.game.letter_locations):
                 row = item[0]
                 col = item[1]
-                letter = self.game.board[row][col]
                 for direction in ['across', 'down']:
                     # TODO: update this so that it accounts for other words on the board
                     fl_ind = []
@@ -307,13 +304,13 @@ class Brute:
         """turn execution
         """
         word, position, direction, letters_from_hand = self.find_best_play()
-        self.game.place_word(position[0], position[1], word, direction, self.number, len(letters_from_hand))
         temp_hand = deepcopy(self.hand)
         for letter in letters_from_hand:
             if letter not in self.hand:
                 letter = ' '
             index = self.hand.index(letter)
             self.hand = self.hand[0:index] + self.hand[index + 1:]
+        self.game.place_word(position[0], position[1], word, direction, self.number, len(letters_from_hand))
         self.game.display_board()
         print("hand was: " + str(temp_hand) + "\nword: "+ word + "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))
         self.hand += self.game.draw_letters(len(letters_from_hand))
