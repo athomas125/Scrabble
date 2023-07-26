@@ -216,8 +216,6 @@ class ScrabbleBoard:
         Returns:
             bool: whether the word is valid or not
         """
-        # TODO: add a check for valid words from attached words
-        
         if self.is_first_turn:
             return True
         elif direction == 'across':
