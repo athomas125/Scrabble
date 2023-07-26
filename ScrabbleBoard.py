@@ -255,6 +255,8 @@ class ScrabbleBoard:
             int: The total score of the word based on letter scores and multipliers, or -1
                 if the input lists do not have the same length as the letters string.
         """
+        if num_letters_from_hand == 0:
+            return 0
         if len(letters) != len(letter_multiplier_list) or len(letters) != len(word_multiplier_list):
             print('invalid letters/multipliers input')
             return -1

@@ -7,11 +7,16 @@ class Brute:
     """
     game player that uses a brute force method
     """
-    def __init__(self, game, number):
+    def __init__(self, game, number, hand=None):
         # load the words from the dictionary file into the brute's brain
         self.brain = self.load_words_into_trie('Collins Scrabble Words (2019).txt')
         self.game = game
-        self.hand = self.game.draw_letters(7)
+        # TODO: remove this once debugged
+        if not hand:
+            self.hand = self.game.draw_letters(7)
+        else:
+            self.hand = hand
+            self.hand += self.game.draw_letters(7-len(hand))
         self.number = number
 
 
@@ -46,7 +51,7 @@ class Brute:
             fixed_letter_indices = []
 
         while len(prefix) in fixed_letter_indices:
-            prefix += fixed_letters[fixed_letter_indices.index(len(prefix))]
+            prefix += fixed_letters[fixed_letter_indices.index(len(prefix))][0]
 
         if prefix:
             valid_word, valid_prefix = self.brain.search(prefix)
@@ -151,6 +156,22 @@ class Brute:
                     out += self.game.board[row][ind]
                 ind += 1
         return out
+    
+    def get_score_input(self, word, fl_ind=[], fl_let=[]):
+        # creating this function in order to handle blanks and create two output lists
+        # first output list is the word as a list, and the second is the letters from the hand as a list
+        # changing word from string to a list to properly handle blanks
+        word = list(word)
+        letters_from_hand = []
+        for i, letter in enumerate(word):
+            if i in fl_ind:
+                word[i] = fl_let[fl_ind.index(i)]
+            else:
+                if letter not in self.hand:
+                    word[i] = letter + '-'
+                letters_from_hand.append(word[i])
+
+        return word, letters_from_hand
 
     def find_best_play(self):
         """
@@ -172,9 +193,9 @@ class Brute:
             for word in valid_words:
                 # simplifying by placing the first word horizontally always
                 row = 7
-                letters_from_hand = word
                 for col in range(7 - (len(word)-1), 8):
                     letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, 'across')
+                    word, letters_from_hand = self.get_score_input(word)
                     score = self.game.calculate_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
                     if score > best_score:
                         best_word = word
@@ -283,13 +304,7 @@ class Brute:
                         for word in words:
                             if self.game.can_play_word(row, col, word, direction) and self.check_validity(row, col, word, direction):
                                 letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, direction)
-                                # Calculate score
-                                # use the fixed letters to determine the letters from hand
-                                letters_from_hand = word
-                                for k in reversed(fl_ind):
-                                    if k < len(word):
-                                        letters_from_hand = letters_from_hand[:k] + letters_from_hand[k+1:]
-                                # TODO: somehow update the calculate score call to handle putting down blanks
+                                word, letters_from_hand = self.get_score_input(word, fl_ind, fl_let)
                                 score = self.game.calculate_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
                                 if score > best_score:
                                     best_word = word
@@ -310,18 +325,25 @@ class Brute:
                 letter = ' '
             index = self.hand.index(letter)
             self.hand = self.hand[0:index] + self.hand[index + 1:]
+        pre_points = self.game.get_player_scores()[self.number]
         self.game.place_word(position[0], position[1], word, direction, self.number, len(letters_from_hand))
         self.game.display_board()
-        print("hand was: " + str(temp_hand) + "\nword: "+ word + "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))
+        points = self.game.get_player_scores()[self.number] - pre_points
+        print("hand was: " + str(temp_hand) + "\nword: "+ str(word) + "\nnumber of points this turn: " + str(points) + "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))
         self.hand += self.game.draw_letters(len(letters_from_hand))
         print("new hand" + str(self.hand))
 
 # initialize the board
-Game = ScrabbleBoard(1)
-brute_1 = Brute(Game, 1)
-brute_2 = Brute(Game, 2)
+Game = ScrabbleBoard(2)
+brute_1 = Brute(Game, 0, hand = ['F', 'E', ' ', 'O', 'T', 'E', 'I'])
+brute_2 = Brute(Game, 1)
 go_again = 'yep'
+i = 0
 while go_again != 'stop':
-    brute_1.do_turn()
-    brute_2.do_turn()
+    if i == 0:
+        brute_1.do_turn()
+        i = 1
+    elif i == 1:
+        brute_2.do_turn()
+        i = 0
     go_again = input("type stop to stop, otherwise it will do another turn: ")
