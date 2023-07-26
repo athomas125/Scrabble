@@ -170,6 +170,14 @@ class Brute:
                 # adding in length check to prevent constant appending of '-'
                 if letter not in self.hand and len(letter)==1:
                     word[i] = letter + '-'
+                elif len(letter) == 1:
+                    # TODO: need to add in a check here to handle if there are multiple of the same
+                    # letter in the word, and one of them is a blank
+                    instances_in_hand = len([i for i in range(len(self.hand)) if self.hand[i] == letter])
+                    instances_in_lfh = len([i for i in range(len(letters_from_hand)) if letters_from_hand[i] == letter])
+                    if instances_in_hand == instances_in_lfh:
+                        word[i] = letter + '-'
+                    
                 letters_from_hand.append(word[i])
 
         return word, letters_from_hand
