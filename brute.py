@@ -248,7 +248,7 @@ class Brute:
                     for j in range(start, maxl+1):
                         if j > start:
                             # shift the index down by one because we are moving our start position
-                            # TODO: check this
+                            # shift through continuous blocks of letters
                             fl_ind = [x - 1 for x in fl_ind]
                             if len(fl_ind) > 0 and fl_ind[0] < 0:
                                 del fl_ind[0]
