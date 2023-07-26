@@ -8,7 +8,7 @@ class ScrabbleBoard:
     """
     Represents a Scrabble board.
     """
-    def __init__(self, number_of_players):
+    def __init__(self, number_of_players, seed=10):
         """
         Initializes the Scrabble board as a 15x15 grid of empty squares, and the multiplier board.
         """
@@ -34,6 +34,7 @@ class ScrabbleBoard:
         self.letter_locations = []
         # a list of board squares string values that are valid to play on top of
         self.valid_play_squares = ['3W', '3L', '2W', '2L', ' ']
+        random.seed(seed)
 
 
         with open('letter_distribution.json', 'r') as f:
@@ -87,7 +88,7 @@ class ScrabbleBoard:
 
         if num_letters > len(letters):
             num_letters = len(letters)
-
+        
         drawn_letters = random.sample(letters, num_letters)
 
         # Update the counts of the drawn letters
