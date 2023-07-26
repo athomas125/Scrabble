@@ -216,39 +216,21 @@ class ScrabbleBoard:
         Returns:
             bool: whether the word is valid or not
         """
-        word_len = len(word)
-        
         # TODO: add a check for valid words from attached words
         
-        valid  = False
-        # currently limiting search to avoid any crossovers
         if self.is_first_turn:
             return True
         elif direction == 'across':
             # if the length of the word plus the starting position is out of bounds, return False
             if col + len(word) >= 15:
                 return False
-            # check if there is anything above/below
-            for i in range(len(word)):
-                if col + 1 < 15 and self.board[row+i][col+1] not in self.valid_play_squares or \
-                col - 1 > 0 and self.board[row+i][col+1] not in self.valid_play_squares:
-                    return False
-                if (row, col + i) in self.letter_locations:
-                    valid = True
         elif direction == 'down':
             # if the length of the word plus the starting position is out of bounds, return False
             if row + len(word) >= 15:
                 return False
-            # check if there is anything above/below
-            for i in range(len(word)):
-                if row + 1 < 15 and self.board[row+1][col] not in self.valid_play_squares or \
-                row - 1 > 0 and self.board[row+1][col] not in self.valid_play_squares:
-                    return False
-                if (row + i, col) in self.letter_locations:
-                    valid = True
         else:
             raise ValueError("Direction must be 'across' or 'down'.")
-        return valid
+        return True
 
     def calculate_score(self, letters, letter_multiplier_list, word_multiplier_list, num_letters_from_hand):
         """
