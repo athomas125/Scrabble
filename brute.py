@@ -57,10 +57,11 @@ class Brute:
             valid_word, valid_prefix = self.brain.search(prefix)
             if valid_word:
                 if len(fixed_letter_indices) == 0:
-                    words.add(prefix)
-                else:
-                    if len(prefix) >= fixed_letter_indices[0]:
+                    if prefix not in words:
                         words.add(prefix)
+                elif len(prefix) >= fixed_letter_indices[0] and prefix not in words:
+                    # this line is here to make sure at least one fixed letter is contained in the word
+                    words.add(prefix)
             if not valid_prefix:
                 return words
 
@@ -198,6 +199,9 @@ class Brute:
         if self.game.get_is_first_turn():
             # just want to calculate the highest score word in our hand
             valid_words = self.get_words(self.hand)
+            # sorting first by alphabetical order and then by length in order 
+            # to consistently order words
+            valid_words = sorted(valid_words)
             valid_words = sorted(valid_words, key=len)[::-1]
             for word in valid_words:
                 # simplifying by placing the first word horizontally always
