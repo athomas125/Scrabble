@@ -314,6 +314,9 @@ class Brute:
                                 words += self.get_words(letters_left, prefix=p, fixed_letter_indices=fl_ind, fixed_letters=fl_let)
                         elif fl_ind[0] == 0:
                             words += self.get_words(self.hand, fixed_letter_indices=fl_ind, fixed_letters=fl_let)
+                        # adding sorting here to have consistent ordering during search
+                        words = sorted(words)
+                        words = sorted(words, key=len)[::-1]
                         for word in words:
                             if self.game.can_play_word(row, col, word, direction) and self.check_validity(row, col, word, direction):
                                 letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, direction)
