@@ -343,8 +343,8 @@ class Brute:
         print("new hand" + str(self.hand))
 
 # initialize the board
-Game = ScrabbleBoard(2)
-brute_1 = Brute(Game, 0, hand = ['F', 'E', ' ', 'O', 'T', 'E', 'I'])
+Game = ScrabbleBoard(2, seed=11)
+brute_1 = Brute(Game, 0)
 brute_2 = Brute(Game, 1)
 go_again = 'yep'
 i = 0
