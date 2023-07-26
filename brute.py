@@ -104,7 +104,7 @@ class Brute:
                 continue
             else:
                 valid_word = self.brain.search(combined_word)
-                if not valid_word:
+                if not valid_word[0]:
                     return False
         # check for validity in the placement direction
         self.get_branched_word(row, col, direction, word)
@@ -126,7 +126,7 @@ class Brute:
                     break
             ind = start
             # get the fully formed word
-            while ind < 15 and self.game.board[ind][col] not in self.game.valid_play_squares or ind == row:
+            while ind < 15 and (self.game.board[ind][col] not in self.game.valid_play_squares or ind == row):
                 if ind == row:
                     out += letter
                 else:
@@ -144,7 +144,7 @@ class Brute:
                     break
             ind = start
             # get the fully formed word
-            while ind < 15 and self.game.board[row][ind] not in self.game.valid_play_squares or ind == col:
+            while ind < 15 and (self.game.board[row][ind] not in self.game.valid_play_squares or ind == col):
                 if ind == col:
                     out += letter
                 else:
