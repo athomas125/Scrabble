@@ -162,15 +162,17 @@ class ScrabbleBoard:
             letter_multipliers, word_multipliers = self.get_multipliers(row, col, word, direction)
             if direction == 'across':
                 for i, letter in enumerate(word):
-                    self.board[row][col + i] = letter
-                    self.letter_locations.append((row, col + i))
+                    if self.board[row][col + i] in self.valid_play_squares:
+                        self.board[row][col + i] = letter
+                        self.letter_locations.append((row, col + i))
             elif direction == 'down':
                 for i, letter in enumerate(word):
-                    self.board[row + i][col] = letter
-                    self.letter_locations.append((row + i, col))
+                    if self.board[row + i][col] in self.valid_play_squares:
+                        self.board[row + i][col] = letter
+                        self.letter_locations.append((row + i, col))
         
         self.is_first_turn = False
-        self.player_scores[player] = self.calculate_score(word, letter_multipliers, word_multipliers, num_letters_from_hand)
+        self.player_scores[player] += self.calculate_score(word, letter_multipliers, word_multipliers, num_letters_from_hand)
         
         return True
 
