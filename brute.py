@@ -138,7 +138,7 @@ class Brute:
                 if ind == row:
                     out += letter
                 else:
-                    out += self.game.board[ind][col]
+                    out += self.game.board[ind][col][0]
                 ind += 1
         elif direction == 'across':
             start = col
@@ -156,7 +156,7 @@ class Brute:
                 if ind == col:
                     out += letter
                 else:
-                    out += self.game.board[row][ind]
+                    out += self.game.board[row][ind][0]
                 ind += 1
         return out
     
