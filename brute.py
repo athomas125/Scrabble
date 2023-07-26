@@ -167,7 +167,8 @@ class Brute:
             if i in fl_ind:
                 word[i] = fl_let[fl_ind.index(i)]
             else:
-                if letter not in self.hand:
+                # adding in length check to prevent constant appending of '-'
+                if letter not in self.hand and len(letter)==1:
                     word[i] = letter + '-'
                 letters_from_hand.append(word[i])
 
