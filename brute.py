@@ -1,6 +1,5 @@
 from copy import deepcopy
 import string
-from Trie import Trie
 from ScrabbleBoard import ScrabbleBoard
 
 class Brute:
@@ -8,34 +7,14 @@ class Brute:
     game player that uses a brute force method
     """
     def __init__(self, game, number, hand=None):
-        # load the words from the dictionary file into the brute's brain
-        self.brain = self.load_words_into_trie('Collins Scrabble Words (2019).txt')
         self.game = game
+        self.number = number
         # TODO: remove this once debugged
         if not hand:
             self.hand = self.game.draw_letters(7)
         else:
             self.hand = hand
             self.hand += self.game.draw_letters(7-len(hand))
-        self.number = number
-
-
-    def load_words_into_trie(self, file_name):
-        """
-        Reads words from a text file and inserts each word into the Trie.
-
-        Args:
-            file_name (str): The name of the file to read the words from.
-
-        Returns:
-            Trie: The Trie loaded with words.
-        """
-        trie = Trie()
-        with open(file_name, 'r') as file:
-            for line in file:
-                word = line.strip()  # remove newline character
-                trie.insert(word)
-        return trie
 
 
     def get_words(self, letters, prefix='', words=None, fixed_letter_indices=None, fixed_letters=None):
@@ -54,7 +33,7 @@ class Brute:
             prefix += fixed_letters[fixed_letter_indices.index(len(prefix))][0]
 
         if prefix:
-            valid_word, valid_prefix = self.brain.search(prefix)
+            valid_word, valid_prefix = self.game.dictionary.search(prefix)
             if valid_word:
                 if len(fixed_letter_indices) == 0:
                     if prefix not in words:
@@ -80,7 +59,7 @@ class Brute:
             prefixes = set()
 
         if prefix:
-            valid_word, valid_prefix = self.brain.search(prefix)
+            valid_word, valid_prefix = self.game.dictionary.search(prefix)
             if not valid_prefix:
                 return prefixes
             else:
@@ -96,118 +75,6 @@ class Brute:
                 self.get_prefixes(new_letters, prefix + letter, prefixes)
         return prefixes
 
-    def get_perp_words(self, row, col, word, direction):
-        # intention for this is to check if any words that the placed word 
-        # combines with not in the direction of play are invalid
-        # check for validity in cross directions
-        combined_words = {}
-        for i, letter in enumerate(word):
-            if direction == 'across':
-                combined_word, row_out = self.get_branched_word(row, col+i, 'down', letter)
-                if len(combined_word) > 1:
-                    combined_words[(row_out, col + i, 'down')] = combined_word
-            elif direction == 'down':
-                combined_word, col_out = self.get_branched_word(row+i, col, 'across', letter)
-                if len(combined_word) > 1:
-                    combined_words[(row + i, col_out, 'across')] = combined_word
-            else:
-                raise ValueError("direction must be 'across' or 'down'.")
-        return combined_words
-
-    def check_validity(self, words):
-        for word in words:
-            valid_word = self.brain.search(word)
-            if not valid_word[0]:
-                return False
-        return True
-
-    def get_branched_word(self, row, col, direction, letter):
-        # gets the word being formed by the letter placed in the row/col index in direction given
-        # TODO: test that this works properly
-        out = ""
-        if direction == 'down':
-            start = row
-            i = 1
-            # get the first index of the branched word
-            while row-i >= 0:
-                if self.game.board[row-i][col] not in self.game.valid_play_squares:
-                    start = row-i
-                    i += 1
-                else:
-                    break
-            ind = start
-            # get the fully formed word
-            while ind < 15 and (self.game.board[ind][col] not in self.game.valid_play_squares or ind == row):
-                if ind == row:
-                    out += letter
-                else:
-                    out += self.game.board[ind][col][0]
-                ind += 1
-        elif direction == 'across':
-            start = col
-            i = 1
-            # get the first index of the branched word
-            while col-i >= 0:
-                if self.game.board[row][col-i] not in self.game.valid_play_squares:
-                    start = col-i
-                    i += 1
-                else:
-                    break
-            ind = start
-            # get the fully formed word
-            while ind < 15 and (self.game.board[row][ind] not in self.game.valid_play_squares or ind == col):
-                if ind == col:
-                    out += letter
-                else:
-                    out += self.game.board[row][ind][0]
-                ind += 1
-        return out, start
-    
-    def get_score_input(self, word, fl_ind=[], fl_let=[]):
-        # creating this function in order to handle blanks and create two output lists
-        # first output list is the word as a list, and the second is the letters from the hand as a list
-        # changing word from string to a list to properly handle blanks
-        word = list(word)
-        letters_from_hand = []
-        for i, letter in enumerate(word):
-            if i in fl_ind:
-                word[i] = fl_let[fl_ind.index(i)]
-            else:
-                # adding in length check to prevent constant appending of '-'
-                if letter not in self.hand and len(letter)==1:
-                    word[i] = letter + '-'
-                elif len(letter) == 1:
-                    # TODO: need to add in a check here to handle if there are multiple of the same
-                    # letter in the word, and one of them is a blank
-                    instances_in_hand = len([i for i in range(len(self.hand)) if self.hand[i] == letter])
-                    instances_in_lfh = len([i for i in range(len(letters_from_hand)) if letters_from_hand[i] == letter])
-                    if instances_in_hand == instances_in_lfh:
-                        word[i] = letter + '-'
-                    
-                letters_from_hand.append(word[i])
-
-        return word, letters_from_hand
-
-    def get_cross_score_input(self, row, col, perp_row, perp_col, perp_word, perp_dir):
-        # gets intersection between words and check if it is an already placed letter or not
-        word = list(perp_word)
-        if perp_dir == 'across':
-            if self.game.board[perp_row][col] in self.game.valid_play_squares:
-                if perp_word[col-perp_col] not in self.hand:
-                    word[col-perp_col] = word[col-perp_col] + '-'
-                return word, word[col-perp_col]
-            else:
-                return word, []
-        elif perp_dir == 'down':
-            if self.game.board[row][perp_col] in self.game.valid_play_squares:
-                if perp_word[row-perp_row] not in self.hand:
-                    word[row-perp_row] = word[row-perp_row] + '-'
-                return word, word[row-perp_row]
-            else:
-                return word, []
-            
-        else:
-            raise ValueError("direction must be 'across' or 'down'")
 
     def find_best_play(self):
         """
@@ -347,50 +214,33 @@ class Brute:
                         words = sorted(words, key=len)[::-1]
                         for word in words:
                             if self.game.can_play_word(row, col, word, direction):
-                                score = 0
-                                # this checks the validity of all the perpendicular words and adds them to a list of tuples
-                                # in order to calculate their contribution to the score
-                                combined_words = self.get_perp_words(row, col, word, direction)
-                                valid = self.check_validity(combined_words)
-                                if not valid:
-                                    continue
-                                else:
-                                    for key in combined_words:
-                                        perp_row = key[0]
-                                        perp_col = key[1]
-                                        perp_dir = key[2]
-                                        perp_word = combined_words[key]
-                                        letter_multipliers, word_multipliers = self.game.get_multipliers(perp_row, perp_col, perp_word, perp_dir)
-                                        perp_word, letters_from_hand = self.get_cross_score_input(row, col, perp_row, perp_col, perp_word, perp_dir)
-                                        score += self.game.calculate_score(perp_word, letter_multipliers, word_multipliers, len(letters_from_hand))
-                                    
-                                letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, direction)
-                                word, letters_from_hand = self.get_score_input(word, fl_ind, fl_let)
-                                score += self.game.calculate_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
+                                score, word, letters_from_hand = self.game.calculate_turn_score(row, col, word, self.hand, direction, fl_ind, fl_let)
                                 if score > best_score:
                                     best_word = word
                                     best_letters_from_hand = letters_from_hand
                                     best_score = score
                                     best_position = (row, col)
                                     best_direction = direction
+                                    best_fl_ind = fl_ind
+                                    best_fl_let = fl_let
         
-        return best_word, best_position, best_direction, best_letters_from_hand
+        return best_word, best_position, best_direction, best_letters_from_hand, best_fl_ind, best_fl_let
 
     def do_turn(self):
         """turn execution
         """
-        word, position, direction, letters_from_hand = self.find_best_play()
-        temp_hand = deepcopy(self.hand)
+        word, position, direction, letters_from_hand, fl_ind, fl_let = self.find_best_play()
+        pre_points = self.game.get_player_scores()[self.number]
+        self.game.place_word(position[0], position[1], word, direction, self.number, self.hand, fl_ind, fl_let)
+        self.game.display_board()
+        points = self.game.get_player_scores()[self.number] - pre_points
+        print("hand was: " + str(self.hand) + "\nword: "+ str(word) + "\nnumber of points this turn: " + str(points) + "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))
+        
         for letter in letters_from_hand:
             if letter not in self.hand:
                 letter = ' '
             index = self.hand.index(letter)
             self.hand = self.hand[0:index] + self.hand[index + 1:]
-        pre_points = self.game.get_player_scores()[self.number]
-        self.game.place_word(position[0], position[1], word, direction, self.number, len(letters_from_hand))
-        self.game.display_board()
-        points = self.game.get_player_scores()[self.number] - pre_points
-        print("hand was: " + str(temp_hand) + "\nword: "+ str(word) + "\nnumber of points this turn: " + str(points) + "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))
         self.hand += self.game.draw_letters(len(letters_from_hand))
         print("new hand" + str(self.hand))
 
