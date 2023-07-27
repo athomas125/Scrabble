@@ -366,6 +366,7 @@ class ScrabbleBoard:
 
     def check_validity(self, words):
         for word in words:
+            word = word.replace('-','')
             valid_word = self.dictionary.search(word)
             if not valid_word[0]:
                 return False
