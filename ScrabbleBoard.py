@@ -308,11 +308,11 @@ class ScrabbleBoard:
         for i, letter in enumerate(word):
             if direction == 'across':
                 combined_word, row_out = self.get_branched_word(row, col+i, 'down', letter)
-                if len(combined_word) > 1:
+                if len(combined_word) > 2 or len(combined_word) > 1 and combined_word[1] != '-':
                     combined_words[(row_out, col + i, 'down')] = combined_word
             elif direction == 'down':
                 combined_word, col_out = self.get_branched_word(row+i, col, 'across', letter)
-                if len(combined_word) > 1:
+                if len(combined_word) > 2 or len(combined_word) > 1 and combined_word[1] != '-':
                     combined_words[(row + i, col_out, 'across')] = combined_word
             else:
                 raise ValueError("direction must be 'across' or 'down'.")
