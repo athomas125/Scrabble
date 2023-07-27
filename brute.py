@@ -216,7 +216,8 @@ class Brute:
                         words = sorted(words, key=len)[::-1]
                         for word in words:
                             if self.game.can_play_word(row, col, word, direction):
-                                score, word, letters_from_hand = self.game.calculate_turn_score(row, col, word, self.hand, direction, fl_ind, fl_let)
+                                score, word, letters_from_hand = self.game.calculate_turn_score(\
+                                    row, col, word, self.hand, direction, fl_ind, fl_let)
                                 if score > best_score:
                                     best_word = word
                                     best_letters_from_hand = letters_from_hand
