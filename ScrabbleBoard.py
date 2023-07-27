@@ -376,7 +376,7 @@ class ScrabbleBoard:
         combined_words = self.get_perp_words(row, col, word, direction)
         valid = self.check_validity(combined_words)
         if not valid:
-            return 0
+            return 0, None, None
         else:
             for key, perp_word in combined_words:
                 perp_row = key[0]
