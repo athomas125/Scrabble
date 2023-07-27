@@ -100,16 +100,16 @@ class Brute:
         # intention for this is to check if any words that the placed word 
         # combines with not in the direction of play are invalid
         # check for validity in cross directions
-        combined_words = []
+        combined_words = {}
         for i, letter in enumerate(word):
             if direction == 'across':
-                combined_word = self.get_branched_word(row, col+i, 'down', letter)
+                combined_word, row_out = self.get_branched_word(row, col+i, 'down', letter)
                 if len(combined_word) > 1:
-                    combined_words += (row, col+i, combined_word, 'down')
+                    combined_words[(row_out, col+i, 'down')] = combined_word
             elif direction == 'down':
-                combined_word = self.get_branched_word(row+i, col, 'across', letter)
+                combined_word, col_out = self.get_branched_word(row+i, col, 'across', letter)
                 if len(combined_word) > 1:
-                    combined_words += (row+i, col, combined_word, 'across')
+                    combined_words[(row + i, col_out, 'across')] = combined_word
             else:
                 raise ValueError("direction must be 'across' or 'down'.")
             # check if combined_word exists and is valid
@@ -163,7 +163,7 @@ class Brute:
                 else:
                     out += self.game.board[row][ind][0]
                 ind += 1
-        return out
+        return out, start
     
     def get_score_input(self, word, fl_ind=[], fl_let=[]):
         # creating this function in order to handle blanks and create two output lists
@@ -190,6 +190,27 @@ class Brute:
 
         return word, letters_from_hand
 
+    def get_cross_score_input(self, row, col, perp_row, perp_col, perp_word, perp_dir):
+        # gets intersection between words and check if it is an already placed letter or not
+        word = list(perp_word)
+        if perp_dir == 'across':
+            if self.game.board[perp_row][col] in self.game.valid_play_squares:
+                if perp_word[col-perp_col] not in self.hand:
+                    word[col-perp_col] = word[col-perp_col] + '-'
+                return word, word[col-perp_col]
+            else:
+                return word, []
+        elif perp_dir == 'down':
+            if self.game.board[row][perp_col] in self.game.valid_play_squares:
+                if perp_word[row-perp_row] not in self.hand:
+                    word[row-perp_row] = word[row-perp_row] + '-'
+                return word, word[row-perp_row]
+            else:
+                return word, []
+            
+        else:
+            raise ValueError("direction must be 'across' or 'down'")
+
     def find_best_play(self):
         """
         Finds the best place to play a word from the given list of words.
@@ -206,7 +227,7 @@ class Brute:
         if self.game.get_is_first_turn():
             # just want to calculate the highest score word in our hand
             valid_words = self.get_words(self.hand)
-            # sorting first by alphabetical order and then by length in order 
+            # sorting first by alphabetical order and then by length in order
             # to consistently order words
             valid_words = sorted(valid_words)
             valid_words = sorted(valid_words, key=len)[::-1]
@@ -224,7 +245,7 @@ class Brute:
                         best_position = (row, col)
                         best_direction = 'across'
         else:
-            # compute all words that are made out of our letters so that 
+            # compute all words that are made out of our letters so that
             # we have a set of prefixes to use to check for more words
             prefixes = self.get_prefixes(self.hand)
             sorted_prefixes = {}
@@ -312,7 +333,7 @@ class Brute:
                         words = []
                         if fl_ind[0] in sorted_prefixes:
                             for p in sorted_prefixes[fl_ind[0]]:
-                                # TODO: self.hand needs to change to letters
+                                
                                 letters_left = self.hand
                                 for char in p:
                                     if char in letters_left:
@@ -335,10 +356,14 @@ class Brute:
                                 if not valid:
                                     continue
                                 else:
-                                    for row, col, word, direction in combined_words:
-                                        letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, direction)
-                                        word, letters_from_hand = self.get_score_input(word)
-                                        score += self.game.calculate_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
+                                    for key in combined_words:
+                                        perp_row = key[0]
+                                        perp_col = key[1]
+                                        perp_dir = key[2]
+                                        perp_word = combined_words[key]
+                                        letter_multipliers, word_multipliers = self.game.get_multipliers(perp_row, perp_col, perp_word, perp_dir)
+                                        perp_word, letters_from_hand = self.get_cross_score_input(row, col, perp_row, perp_col, perp_word, perp_dir)
+                                        score += self.game.calculate_score(perp_word, letter_multipliers, word_multipliers, len(letters_from_hand))
                                     
                                 letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, direction)
                                 word, letters_from_hand = self.get_score_input(word, fl_ind, fl_let)
