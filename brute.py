@@ -100,11 +100,16 @@ class Brute:
         # intention for this is to check if any words that the placed word 
         # combines with not in the direction of play are invalid
         # check for validity in cross directions
+        combined_words = []
         for i, letter in enumerate(word):
             if direction == 'across':
                 combined_word = self.get_branched_word(row, col+i, 'down', letter)
+                if len(combined_word) > 1:
+                    combined_words += (row, col+i, combined_word, 'down')
             elif direction == 'down':
                 combined_word = self.get_branched_word(row+i, col, 'across', letter)
+                if len(combined_word) > 1:
+                    combined_words += (row+i, col, combined_word, 'across')
             else:
                 raise ValueError("direction must be 'across' or 'down'.")
             # check if combined_word exists and is valid
@@ -113,10 +118,10 @@ class Brute:
             else:
                 valid_word = self.brain.search(combined_word)
                 if not valid_word[0]:
-                    return False
+                    return False, None
         # check for validity in the placement direction
         self.get_branched_word(row, col, direction, word)
-        return True
+        return True, combined_words
 
     def get_branched_word(self, row, col, direction, letter):
         # gets the word being formed by the letter placed in the row/col index in direction given
@@ -322,10 +327,22 @@ class Brute:
                         words = sorted(words)
                         words = sorted(words, key=len)[::-1]
                         for word in words:
-                            if self.game.can_play_word(row, col, word, direction) and self.check_validity(row, col, word, direction):
+                            if self.game.can_play_word(row, col, word, direction):
+                                score = 0
+                                # this checks the validity of all the perpendicular words and adds them to a list of tuples
+                                # in order to calculate their contribution to the score
+                                valid, combined_words = self.check_validity(row, col, word, direction)
+                                if not valid:
+                                    continue
+                                else:
+                                    for row, col, word, direction in combined_words:
+                                        letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, direction)
+                                        word, letters_from_hand = self.get_score_input(word)
+                                        score += self.game.calculate_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
+                                    
                                 letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, direction)
                                 word, letters_from_hand = self.get_score_input(word, fl_ind, fl_let)
-                                score = self.game.calculate_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
+                                score += self.game.calculate_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
                                 if score > best_score:
                                     best_word = word
                                     best_letters_from_hand = letters_from_hand
