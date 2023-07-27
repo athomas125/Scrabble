@@ -136,7 +136,7 @@ class ScrabbleBoard:
         """
         letter_multiplier_list = []
         word_multiplier_list = []
-
+        word = word.replace('-','')
         for i in range(len(word)):
             if direction == 'across':
                 multiplier = self.board[row][col + i]
