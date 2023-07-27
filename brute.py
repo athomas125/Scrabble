@@ -88,6 +88,8 @@ class Brute:
         best_position = None
         best_direction = None
         best_letters_from_hand = None
+        best_fl_ind = []
+        best_fl_let = []
 
         if self.game.get_is_first_turn():
             # just want to calculate the highest score word in our hand
@@ -109,8 +111,6 @@ class Brute:
                         best_score = score
                         best_position = (row, col)
                         best_direction = 'across'
-                        best_fl_ind = []
-                        best_fl_let = []
         else:
             # compute all words that are made out of our letters so that
             # we have a set of prefixes to use to check for more words
@@ -260,4 +260,4 @@ while go_again != 'stop':
     elif i == 1:
         brute_2.do_turn()
         i = 0
-    go_again = input("type stop to stop, otherwise it will do another turn: ")
+    # go_again = input("type stop to stop, otherwise it will do another turn: ")
