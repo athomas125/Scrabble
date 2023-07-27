@@ -304,19 +304,22 @@ class ScrabbleBoard:
         # intention for this is to check if any words that the placed word
         # combines with not in the direction of play are invalid
         # check for validity in cross directions
-        combined_words = {}
+        perp_locations = []
+        perp_words = []
         for i, letter in enumerate(word):
             if direction == 'across':
-                combined_word, row_out = self.get_branched_word(row, col+i, 'down', letter)
-                if len(combined_word) > 2 or len(combined_word) > 1 and combined_word[1] != '-':
-                    combined_words[(row_out, col + i, 'down')] = combined_word
+                perp_word, row_out = self.get_branched_word(row, col+i, 'down', letter)
+                if len(perp_word) > 2 or len(perp_word) > 1 and perp_word[1] != '-':
+                    perp_locations.append((row_out, col + i, 'down'))
+                    perp_words.append(perp_word)
             elif direction == 'down':
-                combined_word, col_out = self.get_branched_word(row+i, col, 'across', letter)
-                if len(combined_word) > 2 or len(combined_word) > 1 and combined_word[1] != '-':
-                    combined_words[(row + i, col_out, 'across')] = combined_word
+                perp_word, col_out = self.get_branched_word(row+i, col, 'across', letter)
+                if len(perp_word) > 2 or len(perp_word) > 1 and perp_word[1] != '-':
+                    perp_locations.append((row + i, col_out, 'across'))
+                    perp_words.append(perp_word)
             else:
                 raise ValueError("direction must be 'across' or 'down'.")
-        return combined_words
+        return perp_locations, perp_words
 
 
     def get_branched_word(self, row, col, direction, letter):
@@ -373,15 +376,16 @@ class ScrabbleBoard:
         score = 0
         # this checks the validity of all the perpendicular words and adds them to a list of tuples
         # in order to calculate their contribution to the score
-        combined_words = self.get_perp_words(row, col, word, direction)
-        valid = self.check_validity(combined_words)
+        perp_locations, perp_words = self.get_perp_words(row, col, word, direction)
+        valid = self.check_validity(perp_words)
         if not valid:
             return 0, None, None
         else:
-            for key, perp_word in combined_words:
-                perp_row = key[0]
-                perp_col = key[1]
-                perp_dir = key[2]
+            for i in range(len(perp_words)):
+                perp_row = perp_locations[i][0]
+                perp_col = perp_locations[i][1]
+                perp_dir = perp_locations[i][2]
+                perp_word = perp_words[i]
                 letter_multipliers, word_multipliers = self.get_multipliers(perp_row, perp_col, perp_word, perp_dir)
                 perp_word, letters_from_hand = self.get_cross_score_input(row, col, perp_row, perp_col, perp_word, perp_dir, hand)
                 score += self.calculate_word_score(perp_word, letter_multipliers, word_multipliers, len(letters_from_hand))
