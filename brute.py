@@ -70,9 +70,9 @@ class Brute:
             new_letters.pop(i)
             if letter == ' ':
                 for wildcard in string.ascii_uppercase:
-                    self.get_words(new_letters, prefix + wildcard, words)
+                    self.get_words(new_letters, prefix + wildcard, words, fixed_letter_indices=fixed_letter_indices, fixed_letters=fixed_letters)
             else:
-                self.get_words(new_letters, prefix + letter, words)
+                self.get_words(new_letters, prefix + letter, words, fixed_letter_indices=fixed_letter_indices, fixed_letters=fixed_letters)
         return words
 
     def get_prefixes(self, letters, prefix='', prefixes = None):
