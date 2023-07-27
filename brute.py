@@ -101,14 +101,16 @@ class Brute:
                 row = 7
                 for col in range(7 - (len(word)-1), 8):
                     letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, 'across')
-                    word, letters_from_hand = self.get_score_input(word)
-                    score = self.game.calculate_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
+                    word, letters_from_hand = self.game.get_score_input(word, self.hand)
+                    score = self.game.calculate_word_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
                     if score > best_score:
                         best_word = word
                         best_letters_from_hand = best_word
                         best_score = score
                         best_position = (row, col)
                         best_direction = 'across'
+                        best_fl_ind = []
+                        best_fl_let = []
         else:
             # compute all words that are made out of our letters so that
             # we have a set of prefixes to use to check for more words
