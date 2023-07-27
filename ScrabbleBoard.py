@@ -366,7 +366,7 @@ class ScrabbleBoard:
 
     def check_validity(self, words):
         for word in words:
-            word = word.replace('-','')
+            # TODO: some handling for blanks here, but want to have everything as a list
             valid_word = self.dictionary.search(word)
             if not valid_word[0]:
                 return False
