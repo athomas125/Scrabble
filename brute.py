@@ -281,6 +281,8 @@ class Brute:
                         continue
                     
                     start = max(minl-7, 0)
+                    if start > 0:
+                        fl_ind = [x - start for x in fl_ind]
                     for j in range(start, maxl+1):
                         if j > start:
                             # shift the index down by one because we are moving our start position
