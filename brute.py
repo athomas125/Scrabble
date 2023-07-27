@@ -96,7 +96,7 @@ class Brute:
                 self.get_prefixes(new_letters, prefix + letter, prefixes)
         return prefixes
 
-    def check_validity(self, row, col, word, direction):
+    def get_perp_words(self, row, col, word, direction):
         # intention for this is to check if any words that the placed word 
         # combines with not in the direction of play are invalid
         # check for validity in cross directions
@@ -105,23 +105,21 @@ class Brute:
             if direction == 'across':
                 combined_word, row_out = self.get_branched_word(row, col+i, 'down', letter)
                 if len(combined_word) > 1:
-                    combined_words[(row_out, col+i, 'down')] = combined_word
+                    combined_words[(row_out, col + i, 'down')] = combined_word
             elif direction == 'down':
                 combined_word, col_out = self.get_branched_word(row+i, col, 'across', letter)
                 if len(combined_word) > 1:
                     combined_words[(row + i, col_out, 'across')] = combined_word
             else:
                 raise ValueError("direction must be 'across' or 'down'.")
-            # check if combined_word exists and is valid
-            if len(combined_word) <= 1:
-                continue
-            else:
-                valid_word = self.brain.search(combined_word)
-                if not valid_word[0]:
-                    return False, None
-        # check for validity in the placement direction
-        self.get_branched_word(row, col, direction, word)
-        return True, combined_words
+        return combined_words
+
+    def check_validity(self, words):
+        for word in words:
+            valid_word = self.brain.search(word)
+            if not valid_word[0]:
+                return False
+        return True
 
     def get_branched_word(self, row, col, direction, letter):
         # gets the word being formed by the letter placed in the row/col index in direction given
@@ -352,7 +350,8 @@ class Brute:
                                 score = 0
                                 # this checks the validity of all the perpendicular words and adds them to a list of tuples
                                 # in order to calculate their contribution to the score
-                                valid, combined_words = self.check_validity(row, col, word, direction)
+                                combined_words = self.get_perp_words(row, col, word, direction)
+                                valid = self.check_validity(combined_words)
                                 if not valid:
                                     continue
                                 else:
