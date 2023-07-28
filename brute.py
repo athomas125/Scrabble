@@ -125,12 +125,10 @@ class Brute:
             # here you want to check both directions and all possible play locations
             searched_rows = []
             searched_cols = []
-            # TODO: check for overwriting of other words
             for i, item in enumerate(self.game.letter_locations):
                 row = item[0]
                 col = item[1]
                 for direction in ['across', 'down']:
-                    # TODO: update this so that it accounts for other words on the board
                     fl_ind = []
                     fl_let = []
                     ind = 0
@@ -258,13 +256,19 @@ class Brute:
         return self.playing
 
 # initialize the board
-Game = ScrabbleBoard(2, seed=11)
+Game = ScrabbleBoard(4, seed=15)
 brute_1 = Brute(Game, 0)
 brute_2 = Brute(Game, 1)
+brute_3 = Brute(Game, 2)
+brute_4 = Brute(Game, 3)
 go_again = 'yep'
 i = 0
 one = True
 two = True
-while one and two:
+three = True
+four = True
+while one and two and three and four:
     one = brute_1.do_turn()
     two = brute_2.do_turn()
+    three = brute_3.do_turn()
+    four = brute_4.do_turn()
