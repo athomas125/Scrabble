@@ -88,8 +88,6 @@ class Brute:
         best_position = None
         best_direction = None
         best_letters_from_hand = None
-        best_fl_ind = []
-        best_fl_let = []
 
         if self.game.get_is_first_turn():
             # just want to calculate the highest score word in our hand
@@ -104,10 +102,10 @@ class Brute:
                 row = 7
                 for col in range(7 - (len(word)-1), 8):
                     letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, 'across')
-                    word, letters_from_hand = self.game.get_score_input(row, col, 'across', word, self.hand)
-                    score = self.game.calculate_word_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
+                    score_word, letters_from_hand = self.game.get_score_input(row, col, 'across', word, self.hand)
+                    score = self.game.calculate_word_score(score_word, letter_multipliers, word_multipliers, len(letters_from_hand))
                     if score > best_score:
-                        best_word = word
+                        best_word = score_word
                         best_letters_from_hand = best_word
                         best_score = score
                         best_position = (row, col)
@@ -224,17 +222,15 @@ class Brute:
                                     best_score = score
                                     best_position = (row, col)
                                     best_direction = direction
-                                    best_fl_ind = fl_ind
-                                    best_fl_let = fl_let
         
-        return best_word, best_position, best_direction, best_letters_from_hand, best_fl_ind, best_fl_let
+        return best_word, best_position, best_direction, best_letters_from_hand
 
     def do_turn(self):
         """turn execution
         """
-        word, position, direction, letters_from_hand, fl_ind, fl_let = self.find_best_play()
+        word, position, direction, letters_from_hand = self.find_best_play()
         pre_points = self.game.get_player_scores()[self.number]
-        self.game.place_word(position[0], position[1], word, direction, self.number, self.hand, fl_ind, fl_let)
+        self.game.place_word(position[0], position[1], word, direction, self.number, self.hand)
         self.game.display_board()
         points = self.game.get_player_scores()[self.number] - pre_points
         print("hand was: " + str(self.hand) + "\nword: "+ str(word) + "\nnumber of points this turn: " + str(points) + "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))

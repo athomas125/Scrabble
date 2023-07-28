@@ -164,7 +164,7 @@ class ScrabbleBoard:
         return letter_multiplier_list, word_multiplier_list
 
 
-    def place_word(self, row, col, word, direction, player, hand, fl_ind, fl_let):
+    def place_word(self, row, col, word, direction, player, hand):
         """
         Places a word on the Scrabble board.
 
@@ -179,7 +179,7 @@ class ScrabbleBoard:
         Returns:
             bool: True if the word was successfully placed, False otherwise.
         """
-        score, word, letters_from_hand = self.calculate_turn_score(row, col, word, hand, direction, fl_ind, fl_let)
+        score, word, letters_from_hand = self.calculate_turn_score(row, col, word, hand, direction)
         
         if self.can_play_word(row, col, word, direction):
             if direction == 'across':
@@ -308,14 +308,14 @@ class ScrabbleBoard:
         for i, letter in enumerate(word):
             if direction == 'across':
                 perp_word, row_out = self.get_branched_word(row, col+i, 'down', letter)
-                if len(perp_word) > 2 or len(perp_word) > 1 and perp_word[1] != '-':
+                if len(perp_word) > 1:
                     perp_locations.append((row_out, col + i, 'down'))
-                    perp_words.append(perp_word)
+                    perp_words.append([perp_word])
             elif direction == 'down':
                 perp_word, col_out = self.get_branched_word(row+i, col, 'across', letter)
-                if len(perp_word) > 2 or len(perp_word) > 1 and perp_word[1] != '-':
+                if len(perp_word) > 1:
                     perp_locations.append((row + i, col_out, 'across'))
-                    perp_words.append(perp_word)
+                    perp_words.append([perp_word])
             else:
                 raise ValueError("direction must be 'across' or 'down'.")
         return perp_locations, perp_words
@@ -338,7 +338,7 @@ class ScrabbleBoard:
             # get the fully formed word
             while ind < 15 and (self.board[ind][col] not in self.valid_play_squares or ind == row):
                 if ind == row:
-                    out += letter
+                    out += letter[0]
                 else:
                     out += self.board[ind][col][0]
                 ind += 1
@@ -356,7 +356,7 @@ class ScrabbleBoard:
             # get the fully formed word
             while ind < 15 and (self.board[row][ind] not in self.valid_play_squares or ind == col):
                 if ind == col:
-                    out += letter
+                    out += letter[0]
                 else:
                     out += self.board[row][ind][0]
                 ind += 1
