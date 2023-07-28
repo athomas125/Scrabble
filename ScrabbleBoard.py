@@ -29,8 +29,10 @@ class ScrabbleBoard:
             [' ', '2W', ' ', ' ', ' ', '3L', ' ', ' ', ' ', '3L', ' ', ' ', ' ', '2W', ' '],
             ['3W', ' ', ' ', '2L', ' ', ' ', ' ', '3W', ' ', ' ', ' ', '2L', ' ', ' ', '3W']
         ]
+        self.number_of_players = number_of_players
         self.player_scores = [0] * number_of_players
         self.is_first_turn = True
+        self.is_game_over = False
         self.letter_locations = []
         # a list of board squares string values that are valid to play on top of
         self.valid_play_squares = ['3W', '3L', '2W', '2L', ' ']
@@ -121,6 +123,12 @@ class ScrabbleBoard:
         return drawn_letters
 
 
+    def get_num_letters_left(self):
+        # Flatten the dictionary into a list of letters
+        letters_left = [letter for letter, count in self.letters_to_draw_from.items() for _ in range(count)]
+        return len(letters_left)
+
+
     def get_multipliers(self, row, col, word, direction):
         """
         Gets the letter and word multipliers for a potential word.
@@ -197,10 +205,28 @@ class ScrabbleBoard:
 
         self.is_first_turn = False
         self.player_scores[player] += score
+        
+        if len(letters_from_hand) == len(hand):
+            if self.get_num_letters_left() == 0:
+                print("Final Word: " + str(word))
+                self.game_over()
+                return True
+        else:
+            return True
 
-        return True
-
-
+    def game_over(self):
+        self.is_game_over = True
+        self.display_board()
+        print("Final Score: ")
+        for player in range(self.number_of_players):
+            print("Player " + str(player+1) + ": " + str(self.player_scores[player]))
+        print("GAME OVER!!!!!!!!!!!!!!\
+            \nPlayer " + str(self.player_scores.index(max(self.player_scores))+1) + " is the Winner!")
+        # print the scores and stuff
+        # maybe add a highest scoring word
+        # largest single turn differential
+        # other metrics
+    
     def display_board(self):
         """
         Prints the current state of the Scrabble board.

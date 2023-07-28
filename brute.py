@@ -9,6 +9,7 @@ class Brute:
     def __init__(self, game, number, hand=None):
         self.game = game
         self.number = number
+        self.playing = True
         # TODO: remove this once debugged
         if not hand:
             self.hand = self.game.draw_letters(7)
@@ -228,22 +229,33 @@ class Brute:
     def do_turn(self):
         """turn execution
         """
-        word, position, direction, letters_from_hand = self.find_best_play()
-        pre_points = self.game.get_player_scores()[self.number]
-        self.game.place_word(position[0], position[1], word, direction, self.number, self.hand)
-        self.game.display_board()
-        points = self.game.get_player_scores()[self.number] - pre_points
-        print("hand was: " + str(self.hand) + "\nword: "+ str(word) + \
-            "\nnumber of points this turn: " + str(points) + \
-            "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))
-
-        for letter in letters_from_hand:
-            if letter not in self.hand:
-                letter = ' '
-            index = self.hand.index(letter)
-            self.hand = self.hand[0:index] + self.hand[index + 1:]
-        self.hand += self.game.draw_letters(len(letters_from_hand))
-        print("new hand" + str(self.hand))
+        if not self.game.is_game_over:
+            word, position, direction, letters_from_hand = self.find_best_play()
+            pre_points = self.game.get_player_scores()[self.number]
+            print("hand was: " + str(self.hand))
+            if word is not None:
+                self.game.place_word(position[0], position[1], word, direction, self.number, self.hand)
+                if not self.game.is_game_over:
+                    self.game.display_board()
+                    for letter in letters_from_hand:
+                        if letter not in self.hand:
+                            letter = ' '
+                        index = self.hand.index(letter)
+                        self.hand = self.hand[0:index] + self.hand[index + 1:]
+                    self.hand += self.game.draw_letters(len(letters_from_hand))
+                    print("new hand" + str(self.hand))
+            else:
+                self.game.display_board()
+                print("PASSED - no new letters")
+            
+            if not self.game.is_game_over:
+                points = self.game.get_player_scores()[self.number] - pre_points
+                print("word: "+ str(word) + \
+                    "\nnumber of points this turn: " + str(points) + \
+                    "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))
+        else:
+            self.playing = False
+        return self.playing
 
 # initialize the board
 Game = ScrabbleBoard(2, seed=11)
@@ -251,11 +263,8 @@ brute_1 = Brute(Game, 0)
 brute_2 = Brute(Game, 1)
 go_again = 'yep'
 i = 0
-while go_again != 'stop':
-    if i == 0:
-        brute_1.do_turn()
-        i = 1
-    elif i == 1:
-        brute_2.do_turn()
-        i = 0
-    # go_again = input("type stop to stop, otherwise it will do another turn: ")
+one = True
+two = True
+while one and two:
+    one = brute_1.do_turn()
+    two = brute_2.do_turn()
