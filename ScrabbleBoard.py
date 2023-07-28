@@ -310,11 +310,15 @@ class ScrabbleBoard:
                 perp_word, row_out = self.get_branched_word(row, col+i, 'down', letter)
                 if len(perp_word) > 1:
                     perp_locations.append((row_out, col + i, 'down'))
+                    # wrapping perp_word in a list so enumerate in calculate turn 
+                    # score doesn't loop through the letters
                     perp_words.append([perp_word])
             elif direction == 'down':
                 perp_word, col_out = self.get_branched_word(row+i, col, 'across', letter)
                 if len(perp_word) > 1:
                     perp_locations.append((row + i, col_out, 'across'))
+                    # wrapping perp_word in a list so enumerate in calculate turn 
+                    # score doesn't loop through the letters
                     perp_words.append([perp_word])
             else:
                 raise ValueError("direction must be 'across' or 'down'.")
@@ -365,7 +369,7 @@ class ScrabbleBoard:
 
     def check_validity(self, words):
         for word in words:
-            valid_word = self.dictionary.search(word)
+            valid_word = self.dictionary.search(word[0])
             if not valid_word[0]:
                 return False
         return True
@@ -384,6 +388,7 @@ class ScrabbleBoard:
                 perp_row = perp_locations[i][0]
                 perp_col = perp_locations[i][1]
                 perp_dir = perp_locations[i][2]
+                perp_word = perp_word[0]
                 letter_multipliers, word_multipliers = self.get_multipliers(perp_row, perp_col, perp_word, perp_dir)
                 perp_word, letters_from_hand = self.get_score_input(perp_row, perp_col, perp_dir, perp_word, hand)
                 score += self.calculate_word_score(perp_word, letter_multipliers, word_multipliers, len(letters_from_hand))
