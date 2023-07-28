@@ -104,7 +104,7 @@ class Brute:
                 row = 7
                 for col in range(7 - (len(word)-1), 8):
                     letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, 'across')
-                    word, letters_from_hand = self.game.get_score_input_rewrite(row, col, 'across', word, self.hand)
+                    word, letters_from_hand = self.game.get_score_input(row, col, 'across', word, self.hand)
                     score = self.game.calculate_word_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
                     if score > best_score:
                         best_word = word
