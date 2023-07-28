@@ -105,7 +105,7 @@ class Brute:
                     score_word, letters_from_hand = self.game.get_score_input(row, col, 'across', word, self.hand)
                     score = self.game.calculate_word_score(score_word, letter_multipliers, word_multipliers, len(letters_from_hand))
                     if score > best_score:
-                        best_word = score_word
+                        best_word = word
                         best_letters_from_hand = best_word
                         best_score = score
                         best_position = (row, col)
@@ -214,7 +214,7 @@ class Brute:
                         words = sorted(words, key=len)[::-1]
                         for word in words:
                             if self.game.can_play_word(row, col, word, direction):
-                                score, word, letters_from_hand = self.game.calculate_turn_score(\
+                                score, score_word, letters_from_hand = self.game.calculate_turn_score(\
                                     row, col, word, self.hand, direction)
                                 if score > best_score:
                                     best_word = word
@@ -233,8 +233,10 @@ class Brute:
         self.game.place_word(position[0], position[1], word, direction, self.number, self.hand)
         self.game.display_board()
         points = self.game.get_player_scores()[self.number] - pre_points
-        print("hand was: " + str(self.hand) + "\nword: "+ str(word) + "\nnumber of points this turn: " + str(points) + "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))
-        
+        print("hand was: " + str(self.hand) + "\nword: "+ str(word) + \
+            "\nnumber of points this turn: " + str(points) + \
+            "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))
+
         for letter in letters_from_hand:
             if letter not in self.hand:
                 letter = ' '

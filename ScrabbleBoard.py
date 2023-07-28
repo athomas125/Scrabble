@@ -365,7 +365,6 @@ class ScrabbleBoard:
 
     def check_validity(self, words):
         for word in words:
-            # TODO: some handling for blanks here, but want to have everything as a list
             valid_word = self.dictionary.search(word)
             if not valid_word[0]:
                 return False
@@ -381,11 +380,10 @@ class ScrabbleBoard:
         if not valid:
             return 0, None, None
         else:
-            for i, item in enumerate(perp_words):
+            for i, perp_word in enumerate(perp_words):
                 perp_row = perp_locations[i][0]
                 perp_col = perp_locations[i][1]
                 perp_dir = perp_locations[i][2]
-                perp_word = perp_words[i]
                 letter_multipliers, word_multipliers = self.get_multipliers(perp_row, perp_col, perp_word, perp_dir)
                 perp_word, letters_from_hand = self.get_score_input(perp_row, perp_col, perp_dir, perp_word, hand)
                 score += self.calculate_word_score(perp_word, letter_multipliers, word_multipliers, len(letters_from_hand))
