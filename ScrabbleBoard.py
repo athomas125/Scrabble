@@ -136,7 +136,6 @@ class ScrabbleBoard:
         """
         letter_multiplier_list = []
         word_multiplier_list = []
-        word = word.replace('-','')
         for i in range(len(word)):
             if direction == 'across':
                 multiplier = self.board[row][col + i]
@@ -373,7 +372,7 @@ class ScrabbleBoard:
         return True
     
     
-    def calculate_turn_score(self, row, col, word, hand, direction, fl_ind, fl_let):
+    def calculate_turn_score(self, row, col, word, hand, direction):
         score = 0
         # this checks the validity of all the perpendicular words and adds them to a list of tuples
         # in order to calculate their contribution to the score
@@ -382,64 +381,52 @@ class ScrabbleBoard:
         if not valid:
             return 0, None, None
         else:
-            for i in range(len(perp_words)):
+            for i, item in enumerate(perp_words):
                 perp_row = perp_locations[i][0]
                 perp_col = perp_locations[i][1]
                 perp_dir = perp_locations[i][2]
                 perp_word = perp_words[i]
                 letter_multipliers, word_multipliers = self.get_multipliers(perp_row, perp_col, perp_word, perp_dir)
-                perp_word, letters_from_hand = self.get_cross_score_input(row, col, perp_row, perp_col, perp_word, perp_dir, hand)
+                perp_word, letters_from_hand = self.get_score_input(perp_row, perp_col, perp_dir, perp_word, hand)
                 score += self.calculate_word_score(perp_word, letter_multipliers, word_multipliers, len(letters_from_hand))
             
         letter_multipliers, word_multipliers = self.get_multipliers(row, col, word, direction)
-        word, letters_from_hand = self.get_score_input(word, hand, fl_ind, fl_let)
+        word, letters_from_hand = self.get_score_input(row, col, direction, word, hand)
         score += self.calculate_word_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
         return score, word, letters_from_hand
 
-
-    def get_score_input(self, word, hand, fl_ind=[], fl_let=[]):
-        # creating this function in order to handle blanks and create two output lists
-        # first output list is the word as a list, and the second is the letters from the hand as a list
-        # changing word from string to a list to properly handle blanks
+    def get_score_input(self, row, col, direction, word, hand):
+        # this function should score calculate for a word placement
         word = list(word)
         letters_from_hand = []
-        for i, letter in enumerate(word):
-            if i in fl_ind:
-                word[i] = fl_let[fl_ind.index(i)]
+        for ind, letter in enumerate(word):
+            if direction == 'across':
+                if self.board[row][col+ind] not in self.valid_play_squares:
+                    word[ind] = self.board[row][col+ind]
+                else:
+                    # adding in length check to prevent constant appending of '-'
+                    if letter not in hand:
+                        word[ind] = letter + '-'
+                    else:
+                        instances_in_hand = len([x for x in range(len(hand)) if hand[x] == letter])
+                        instances_in_lfh = len([x for x in range(len(letters_from_hand)) if letters_from_hand[x] == letter])
+                        if instances_in_hand == instances_in_lfh:
+                            word[ind] = letter + '-'
+                    letters_from_hand.append(word[ind])
+            elif direction == 'down':
+                if self.board[row+ind][col] not in self.valid_play_squares:
+                    word[ind] = self.board[row+ind][col]
+                else:
+                    # adding in length check to prevent constant appending of '-'
+                    if letter not in hand:
+                        word[ind] = letter + '-'
+                    else:
+                        instances_in_hand = len([x for x in range(len(hand)) if hand[x] == letter])
+                        instances_in_lfh = len([x for x in range(len(letters_from_hand))\
+                            if letters_from_hand[x] == letter])
+                        if instances_in_hand == instances_in_lfh:
+                            word[ind] = letter + '-'
+                    letters_from_hand.append(word[ind])
             else:
-                # adding in length check to prevent constant appending of '-'
-                if letter not in hand and len(letter)==1:
-                    word[i] = letter + '-'
-                elif len(letter) == 1:
-                    # TODO: need to add in a check here to handle if there are multiple of the same
-                    # letter in the word, and one of them is a blank
-                    instances_in_hand = len([i for i in range(len(hand)) if hand[i] == letter])
-                    instances_in_lfh = len([i for i in range(len(letters_from_hand)) if letters_from_hand[i] == letter])
-                    if instances_in_hand == instances_in_lfh:
-                        word[i] = letter + '-'
-                    
-                letters_from_hand.append(word[i])
-
+                raise ValueError("direction must be 'across' or 'down'")
         return word, letters_from_hand
-
-
-    def get_cross_score_input(self, row, col, perp_row, perp_col, perp_word, perp_dir, hand):
-        # gets intersection between words and check if it is an already placed letter or not
-        word = list(perp_word)
-        if perp_dir == 'across':
-            if self.board[perp_row][col] in self.valid_play_squares:
-                if perp_word[col-perp_col] not in hand:
-                    word[col-perp_col] = word[col-perp_col] + '-'
-                return word, word[col-perp_col]
-            else:
-                return word, []
-        elif perp_dir == 'down':
-            if self.board[row][perp_col] in self.valid_play_squares:
-                if perp_word[row-perp_row] not in hand:
-                    word[row-perp_row] = word[row-perp_row] + '-'
-                return word, word[row-perp_row]
-            else:
-                return word, []
-            
-        else:
-            raise ValueError("direction must be 'across' or 'down'")

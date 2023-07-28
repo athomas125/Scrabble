@@ -100,10 +100,11 @@ class Brute:
             valid_words = sorted(valid_words, key=len)[::-1]
             for word in valid_words:
                 # simplifying by placing the first word horizontally always
+                word = list(word)
                 row = 7
                 for col in range(7 - (len(word)-1), 8):
                     letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, 'across')
-                    word, letters_from_hand = self.game.get_score_input(word, self.hand)
+                    word, letters_from_hand = self.game.get_score_input_rewrite(row, col, 'across', word, self.hand)
                     score = self.game.calculate_word_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
                     if score > best_score:
                         best_word = word
@@ -200,7 +201,6 @@ class Brute:
                         words = []
                         if fl_ind[0] in sorted_prefixes:
                             for p in sorted_prefixes[fl_ind[0]]:
-                                
                                 letters_left = self.hand
                                 for char in p:
                                     if char in letters_left:
@@ -217,7 +217,7 @@ class Brute:
                         for word in words:
                             if self.game.can_play_word(row, col, word, direction):
                                 score, word, letters_from_hand = self.game.calculate_turn_score(\
-                                    row, col, word, self.hand, direction, fl_ind, fl_let)
+                                    row, col, word, self.hand, direction)
                                 if score > best_score:
                                     best_word = word
                                     best_letters_from_hand = letters_from_hand
