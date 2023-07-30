@@ -132,13 +132,16 @@ class Brute:
                 for direction in ['across', 'down']:
                     fl_ind = []
                     fl_let = []
-                    ind = 0
                     minl = 15
                     maxl = -1
                     # using prev_blank sets maxl to be the first letter in of the final string
                     # of connected letters in desired direction
-                    prev_blank = -1
                     # want to check to see if there are any intersecting letters in the play direction
+                    
+                    # TODO: want to add some way to check the cross direction and narrow down the
+                    # letters that can be played there, this should interface with fl_ind, want to
+                    # loop through all of the combinations of letters in hand that can be played
+                    prev_blank = -1
                     if direction == 'across':
                         if row not in searched_rows:
                             searched_rows.append(row)
@@ -181,7 +184,7 @@ class Brute:
                     # this should never trigger because we are looping through playable spaces
                     if minl == 15:
                         continue
-                    
+
                     start = max(minl-7, 0)
                     if start > 0:
                         fl_ind = [x - start for x in fl_ind]
@@ -284,7 +287,6 @@ class Brute:
                 for direction in ['across', 'down']:
                     fl_ind = []
                     fl_let = []
-                    ind = 0
                     minl = 15
                     maxl = -1
                     # using prev_blank sets maxl to be the first letter in of the final string
@@ -298,7 +300,6 @@ class Brute:
                                 if self.game.board[row][j] not in self.game.valid_play_contents:
                                     fl_ind.append(j)
                                     fl_let.append(self.game.board[row][j])
-                                    ind += 1
                                     if minl == 15:
                                         minl = j
                                     if j - prev_blank == 1:
