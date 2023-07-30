@@ -33,9 +33,14 @@ class ScrabbleBoard:
         self.player_scores = [0] * number_of_players
         self.is_first_turn = True
         self.is_game_over = False
+        # a list of tuples containing a the row and column locations of letters on the board
         self.letter_locations = []
+        # a dictionary with a tuple as the key, where the tuple is the row and column of a
+        # playable location on the board
+        # initializing with 7,7 because you must start playing on the central square
+        self.valid_play_locations = {(7,7): True}
         # a list of board squares string values that are valid to play on top of
-        self.valid_play_squares = ['3W', '3L', '2W', '2L', ' ']
+        self.valid_play_contents = {'3W': True, '3L': True, '2W': True, '2L': True, ' ': True}
         random.seed(seed)
         
         # load the words from the dictionary file into the brute's brain
@@ -188,20 +193,26 @@ class ScrabbleBoard:
             bool: True if the word was successfully placed, False otherwise.
         """
         score, word, letters_from_hand = self.calculate_turn_score(row, col, word, hand, direction)
-        
         if self.can_play_word(row, col, word, direction):
             if direction == 'across':
                 for i, letter in enumerate(word):
-                    if self.board[row][col + i] in self.valid_play_squares:
+                    if self.board[row][col + i] in self.valid_play_contents:
                         self.board[row][col + i] = letter
                         self.letter_locations.append((row, col + i))
+                        if (row, col+i) in self.valid_play_locations:
+                            del self.valid_play_locations[(row,col+i)]
             elif direction == 'down':
                 for i, letter in enumerate(word):
-                    if self.board[row + i][col] in self.valid_play_squares:
+                    if self.board[row + i][col] in self.valid_play_contents:
                         self.board[row + i][col] = letter
                         self.letter_locations.append((row + i, col))
+                        if (row+i, col) in self.valid_play_locations:
+                            del self.valid_play_locations[(row,col+i)]
         else:
             return False
+        
+        # TODO add code that gets any new valid play locations
+        add_new_valid_locations(row, col, direction, len(word))
 
         self.is_first_turn = False
         self.player_scores[player] += score
@@ -214,7 +225,75 @@ class ScrabbleBoard:
         else:
             return True
 
+
+    def add_new_valid_locations(self, row, col, direction, num_squares):
+        """this function evaluates the letters adjacent to a newly placed word
+        and determines if they should be added to the valid_play_squares dict
+
+        Args:
+            row (int): placement row
+            col (int): placement columns
+            direction (str): direction of play
+            num_squares (int): length of played word
+
+        Raises:
+            ValueError: raises when direction is not 'across' or 'down'
+        """
+
+        for j in [-1, 1]:
+            if direction == 'across':
+                # this code checks the squares along the word perpendicular to the play direction
+                if row + j < 0 or row + j > 15:
+                    continue
+                else:
+                    row_eval = row + j
+                for i in range(num_squares):
+                    col_eval = col + i
+                if self.board[row_eval][col_eval] in self.valid_play_contents:
+                    self.valid_play_locations[(row_eval,col_eval)] = True
+                # this code checks the squares before and after the word in the play direction
+                if j == -1:
+                    col_eval = col+j
+                    if col_eval < 0:
+                        continue
+                    elif self.board[row][col_eval] in self.valid_play_contents:
+                        self.valid_play_locations[(row,col_eval)] = True
+                else:
+                    col_eval = col+num_squares
+                    if col_eval > 15:
+                        continue
+                    elif self.board[row][col_eval] in self.valid_play_contents:
+                        self.valid_play_locations[(row,col_eval)] = True
+
+            elif direction == 'down':
+                if col + j < 0 or col + j > 15:
+                    continue
+                else:
+                    col_eval = col + j
+                for i in range(num_squares):
+                    row_eval = row + i
+                    if self.board[row_eval][col_eval] in self.valid_play_contents:
+                        self.valid_play_locations[(row_eval,col_eval)] = True
+                # this code checks the squares before and after the word in the play direction
+                if j == -1:
+                    row_eval = row+j
+                    if row_eval < 0:
+                        continue
+                    elif self.board[row_eval][col] in self.valid_play_contents:
+                        self.valid_play_locations[(row_eval,col)] = True
+                else:
+                    row_eval = row+num_squares
+                    if row_eval > 15:
+                        continue
+                    elif self.board[row_eval][row_eval] in self.valid_play_contents:
+                        self.valid_play_locations[(row_eval,col)] = True
+            else:
+                raise ValueError("Direction must be 'across' or 'down'.")
+
+
     def game_over(self):
+        """This function will be called when the game is complete
+        """        
         self.is_game_over = True
         self.display_board()
         print("Final Score: ")
@@ -274,13 +353,19 @@ class ScrabbleBoard:
             # if the length of the word plus the starting position is out of bounds, return False
             if col + len(word)-1 >= 15:
                 return False
+            for i in range(len(word)):
+                if (row, col+i) in self.valid_play_locations:
+                    return True
         elif direction == 'down':
             # if the length of the word plus the starting position is out of bounds, return False
             if row + len(word)-1 >= 15:
                 return False
+            for i in range(len(word)):
+                if (row+i, col) in self.valid_play_locations:
+                    return True
         else:
             raise ValueError("Direction must be 'across' or 'down'.")
-        return True
+        return False
 
     def calculate_word_score(self, letters, letter_multiplier_list, word_multiplier_list, num_letters_from_hand):
         """
@@ -359,14 +444,14 @@ class ScrabbleBoard:
             i = 1
             # get the first index of the branched word
             while row-i >= 0:
-                if self.board[row-i][col] not in self.valid_play_squares:
+                if self.board[row-i][col] not in self.valid_play_contents:
                     start = row-i
                     i += 1
                 else:
                     break
             ind = start
             # get the fully formed word
-            while ind < 15 and (self.board[ind][col] not in self.valid_play_squares or ind == row):
+            while ind < 15 and (self.board[ind][col] not in self.valid_play_contents or ind == row):
                 if ind == row:
                     out += letter[0]
                 else:
@@ -377,14 +462,14 @@ class ScrabbleBoard:
             i = 1
             # get the first index of the branched word
             while col-i >= 0:
-                if self.board[row][col-i] not in self.valid_play_squares:
+                if self.board[row][col-i] not in self.valid_play_contents:
                     start = col-i
                     i += 1
                 else:
                     break
             ind = start
             # get the fully formed word
-            while ind < 15 and (self.board[row][ind] not in self.valid_play_squares or ind == col):
+            while ind < 15 and (self.board[row][ind] not in self.valid_play_contents or ind == col):
                 if ind == col:
                     out += letter[0]
                 else:
@@ -394,6 +479,14 @@ class ScrabbleBoard:
 
 
     def check_validity(self, words):
+        """This checks whether a given word is in the dictionary, and hence valid
+
+        Args:
+            words (list): word contained in a list (ie. ['word'])
+
+        Returns:
+            bool: Whether or not the given word is valid
+        """        
         for word in words:
             valid_word = self.dictionary.search(word[0])
             if not valid_word[0]:
@@ -430,7 +523,7 @@ class ScrabbleBoard:
         letters_from_hand = []
         for ind, letter in enumerate(word):
             if direction == 'across':
-                if self.board[row][col+ind] not in self.valid_play_squares:
+                if self.board[row][col+ind] not in self.valid_play_contents:
                     word[ind] = self.board[row][col+ind]
                 else:
                     # adding in length check to prevent constant appending of '-'
@@ -443,7 +536,7 @@ class ScrabbleBoard:
                             word[ind] = letter + '-'
                     letters_from_hand.append(word[ind])
             elif direction == 'down':
-                if self.board[row+ind][col] not in self.valid_play_squares:
+                if self.board[row+ind][col] not in self.valid_play_contents:
                     word[ind] = self.board[row+ind][col]
                 else:
                     # adding in length check to prevent constant appending of '-'
