@@ -8,7 +8,10 @@ class ScrabbleBoard:
     """
     Represents a Scrabble board.
     """
-    def __init__(self, number_of_players, seed=10, dictionary='Collins Scrabble Words (2019).txt'):
+    def __init__(self,
+                 number_of_players,
+                 seed=10,
+                 dictionary='Collins Scrabble Words (2019).txt'):
         """
         Initializes the Scrabble board as a 15x15 grid of empty squares, and the multiplier board.
         """
@@ -42,7 +45,7 @@ class ScrabbleBoard:
         # a list of board squares string values that are valid to play on top of
         self.valid_play_contents = {'3W': True, '3L': True, '2W': True, '2L': True, ' ': True}
         random.seed(seed)
-        
+
         # load the words from the dictionary file into the brute's brain
         self.dictionary = self.load_words_into_trie(dictionary)
 
@@ -53,7 +56,8 @@ class ScrabbleBoard:
             self.letter_scores = json.load(f)
 
 
-    def load_words_into_trie(self, file_name):
+    def load_words_into_trie(self,
+                             file_name):
         """
         Reads words from a text file and inserts each word into the Trie.
 
@@ -80,7 +84,9 @@ class ScrabbleBoard:
         return self.player_scores
 
 
-    def update_player_scores(self, player_index, score):
+    def update_player_scores(self,
+                             player_index,
+                             score):
         """updates the total score of a given player given a turn score
 
         Args:
@@ -88,8 +94,8 @@ class ScrabbleBoard:
             score (int): score to be added to the players total score
         """
         self.player_scores[player_index] += score
-    
-    
+
+
     def get_is_first_turn(self):
         """Returns whether it is the first turn
 
@@ -98,7 +104,9 @@ class ScrabbleBoard:
         """
         return self.is_first_turn
 
-    def draw_letters(self, num_letters):
+
+    def draw_letters(self,
+                     num_letters):
         """
         Draws random letters from the current distribution of letters.
 
@@ -116,7 +124,7 @@ class ScrabbleBoard:
 
         if num_letters > len(letters):
             num_letters = len(letters)
-        
+
         drawn_letters = random.sample(letters, num_letters)
 
         # Update the counts of the drawn letters
@@ -129,12 +137,21 @@ class ScrabbleBoard:
 
 
     def get_num_letters_left(self):
+        """Returns the number of letters left in the draw pile
+
+        Returns:
+            int: number of letters left in the draw pile
+        """
         # Flatten the dictionary into a list of letters
         letters_left = [letter for letter, count in self.letters_to_draw_from.items() for _ in range(count)]
         return len(letters_left)
 
 
-    def get_multipliers(self, row, col, word, direction):
+    def get_multipliers(self,
+                        row,
+                        col,
+                        word,
+                        direction):
         """
         Gets the letter and word multipliers for a potential word.
 
@@ -177,7 +194,13 @@ class ScrabbleBoard:
         return letter_multiplier_list, word_multiplier_list
 
 
-    def place_word(self, row, col, word, direction, player, hand):
+    def place_word(self,
+                   row,
+                   col,
+                   word,
+                   direction,
+                   player,
+                   hand):
         """
         Places a word on the Scrabble board.
 
@@ -225,7 +248,11 @@ class ScrabbleBoard:
             return True
 
 
-    def add_new_valid_locations(self, row, col, direction, num_squares):
+    def add_new_valid_locations(self,
+                                row,
+                                col,
+                                direction,
+                                num_squares):
         """this function evaluates the letters adjacent to a newly placed word
         and determines if they should be added to the valid_play_squares dict
 
@@ -296,12 +323,16 @@ class ScrabbleBoard:
             print("Player " + str(player+1) + ": " + str(self.player_scores[player]))
         print("Total Points: " + str(sum(self.player_scores)))
         print("GAME OVER!!!!!!!!!!!!!!\
-            \nPlayer " + str(self.player_scores.index(max(self.player_scores))+1) + " is the Winner!")
-        # print the scores and stuff
-        # maybe add a highest scoring word
-        # largest single turn differential
-        # other metrics
-    
+            \nPlayer "\
+            + str(self.player_scores.index(max(self.player_scores))+1)\
+            + " is the Winner!")
+        # TODO: maybe add a highest scoring word
+        # TODO: largest single turn differential
+        # TODO: average letters placed per turn
+        # TODO: number of points in hand total
+        # TODO: other metrics
+
+
     def display_board(self):
         """
         Prints the current state of the Scrabble board.
@@ -316,12 +347,8 @@ class ScrabbleBoard:
             # For each item in the row, print it left-justified to the max_length
             # Also add a space for readability
             print(' '.join(item.ljust(max_length) for item in row))
-        # for i in range(15):
-        #     for j in range(15):
-        #         print(self.board[i][j], end=' ')
-        #     print()  # Newline after each row
-    
-    
+
+
     def get_board(self):
         """outputs the board
 
@@ -331,7 +358,11 @@ class ScrabbleBoard:
         return self.board
 
 
-    def can_play_word(self, row, col, word, direction):
+    def can_play_word(self,
+                      row,
+                      col,
+                      word,
+                      direction):
         """checks if a given word can be played from a certain direction
 
         Args:
@@ -363,7 +394,11 @@ class ScrabbleBoard:
             raise ValueError("Direction must be 'across' or 'down'.")
         return False
 
-    def calculate_word_score(self, letters, letter_multiplier_list, word_multiplier_list, num_letters_from_hand):
+    def calculate_word_score(self,
+                             letters,
+                             letter_multiplier_list,
+                             word_multiplier_list,
+                             num_letters_from_hand):
         """
         Calculates the score of a word based on letter scores and multipliers.
 
@@ -406,7 +441,29 @@ class ScrabbleBoard:
             return score
 
 
-    def get_perp_words(self, row, col, word, direction):
+    def get_perp_words(self,
+                       row,
+                       col,
+                       word,
+                       direction):
+        """gets all words formed perpendicular to the direction of play
+
+        Args:
+            row (int): row of first letter of word
+            col (int): column of first letter of word
+            word (str): word to evaluate
+            direction (str): direction of play
+
+        Raises:
+            ValueError: if direction is not across or down
+
+        Returns:
+            tuple (perp_locations, perp_words):
+                perp_locations (List[tuple]): list of the
+                    location and direction of each word listed
+                    in perp_words
+                perp_words (List[List]): list of words formed by play
+        """        
         # intention for this is to check if any words that the placed word
         # combines with not in the direction of play are invalid
         # check for validity in cross directions
@@ -432,7 +489,26 @@ class ScrabbleBoard:
         return perp_locations, perp_words
 
 
-    def get_branched_word(self, row, col, direction, letter):
+    def get_branched_word(self,
+                          row,
+                          col,
+                          direction,
+                          letter):
+        """Gets the word being formed by the letter placed in the row/col index
+        in the direction given
+
+        Args:
+            row (int): row of first letter of word
+            col (int): column of first letter of word
+            direction (str): direction of play
+            letter (char): letter played
+
+        Returns:
+            tuple (out, start):
+                out (str): word formed by letter placement
+                start(int): index of the first letter in the word in
+                    the direction of play
+        """
         # gets the word being formed by the letter placed in the row/col index in direction given
         out = ""
         if direction == 'down':
@@ -474,7 +550,8 @@ class ScrabbleBoard:
         return out, start
 
 
-    def check_validity(self, words):
+    def check_validity(self,
+                       words):
         """This checks whether a given word is in the dictionary, and hence valid
 
         Args:
@@ -490,7 +567,29 @@ class ScrabbleBoard:
         return True
     
     
-    def calculate_turn_score(self, row, col, word, hand, direction):
+    def calculate_turn_score(self,
+                             row,
+                             col,
+                             word,
+                             hand,
+                             direction):
+        """Calculates the full score from the turn for the word being played
+
+        Args:
+            row (int): row of first letter of word
+            col (int): column of first letter of word
+            word (str): word to play
+            hand (List): letters in hand
+            direction (str): direction of play
+
+        Returns:
+            tuple (score, word, letters_from_hand):
+                score (int): score of play
+                word (List[char]): word played in the primary direction of play
+                    formatted as a list of characters
+                letters_from_hand(List[char]): letters in the played word that
+                    come from the player's hand
+        """
         score = 0
         # this checks the validity of all the perpendicular words and adds them to a list of tuples
         # in order to calculate their contribution to the score
@@ -504,16 +603,48 @@ class ScrabbleBoard:
                 perp_col = perp_locations[i][1]
                 perp_dir = perp_locations[i][2]
                 perp_word = perp_word[0]
-                letter_multipliers, word_multipliers = self.get_multipliers(perp_row, perp_col, perp_word, perp_dir)
-                perp_word, letters_from_hand = self.get_score_input(perp_row, perp_col, perp_dir, perp_word, hand)
-                score += self.calculate_word_score(perp_word, letter_multipliers, word_multipliers, len(letters_from_hand))
-            
+                letter_multipliers, word_multipliers = self.get_multipliers(perp_row,\
+                                                                            perp_col,\
+                                                                            perp_word,\
+                                                                            perp_dir)
+                perp_word, letters_from_hand = self.get_score_input(perp_row,\
+                                                                    perp_col,\
+                                                                    perp_dir,\
+                                                                    perp_word,\
+                                                                    hand)
+                score += self.calculate_word_score(perp_word,\
+                                                    letter_multipliers,\
+                                                    word_multipliers,\
+                                                    len(letters_from_hand))
+
         letter_multipliers, word_multipliers = self.get_multipliers(row, col, word, direction)
         word, letters_from_hand = self.get_score_input(row, col, direction, word, hand)
-        score += self.calculate_word_score(word, letter_multipliers, word_multipliers, len(letters_from_hand))
+        score += self.calculate_word_score(word,\
+                                            letter_multipliers,\
+                                            word_multipliers,\
+                                            len(letters_from_hand))
         return score, word, letters_from_hand
 
     def get_score_input(self, row, col, direction, word, hand):
+        """Gets the word formatted as a list to handle blanks
+
+        Args:
+            row (int): row of first letter of word
+            col (int): column of first letter of word
+            word (str): word to play
+            direction (str): direction of play
+            hand (List): letters in hand
+
+        Raises:
+            ValueError: if direction is not across or down
+
+        Returns:
+            tuple (word, letters_from_hand):
+                word (List[char]): word played in the primary direction of play
+                    formatted as a list of characters
+                letters_from_hand(List[char]): letters in the played word that
+                    come from the player's hand
+        """
         # this function should score calculate for a word placement
         word = list(word)
         letters_from_hand = []
@@ -527,7 +658,8 @@ class ScrabbleBoard:
                         word[ind] = letter + '-'
                     else:
                         instances_in_hand = len([x for x in range(len(hand)) if hand[x] == letter])
-                        instances_in_lfh = len([x for x in range(len(letters_from_hand)) if letters_from_hand[x] == letter])
+                        instances_in_lfh = len([x for x in range(len(letters_from_hand))\
+                            if letters_from_hand[x] == letter])
                         if instances_in_hand == instances_in_lfh:
                             word[ind] = letter + '-'
                     letters_from_hand.append(word[ind])
