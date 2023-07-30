@@ -136,8 +136,8 @@ class Brute:
             sorted_prefixes[length].append(prefix)
 
         # here you want to check both directions and all possible play locations
-        searched_rows = []
-        searched_cols = []
+        searched_rows = set()
+        searched_cols = set()
         
         for location in self.game.required_play_locations:
             row = location[0]
@@ -157,7 +157,7 @@ class Brute:
                 prev_blank = -1
                 if direction == 'across':
                     if row not in searched_rows:
-                        searched_rows.append(row)
+                        searched_rows.add(row)
                         for j in range(15):
                             if (row, j) in self.game.required_play_locations:
                                 if minl == 15:
@@ -175,7 +175,7 @@ class Brute:
                                 prev_blank = j
                 elif direction == 'down':
                     if col not in searched_cols:
-                        searched_cols.append(col)
+                        searched_cols.add(col)
                         for j in range(15):
                             if (j, col) in self.game.required_play_locations:
                                 if minl == 15:
