@@ -41,9 +41,9 @@ class ScrabbleBoard:
         # a dictionary with a tuple as the key, where the tuple is the row and column of a
         # playable location on the board
         # initializing with 7,7 because you must start playing on the central square
-        self.required_play_locations = {(7,7): True}
+        self.required_play_locations = {(7,7)}
         # a list of board squares string values that are valid to play on top of
-        self.valid_play_contents = {'3W': True, '3L': True, '2W': True, '2L': True, ' ': True}
+        self.valid_play_contents = {'3W', '3L', '2W', '2L', ' '}
         random.seed(seed)
 
         # load the words from the dictionary file into the brute's brain
@@ -223,14 +223,14 @@ class ScrabbleBoard:
                         self.board[row][col + i] = letter
                         self.letter_locations.append((row, col + i))
                         if (row, col+i) in self.required_play_locations:
-                            del self.required_play_locations[(row,col+i)]
+                            self.required_play_locations.remove((row,col+i))
             elif direction == 'down':
                 for i, letter in enumerate(word):
                     if self.board[row + i][col] in self.valid_play_contents:
                         self.board[row + i][col] = letter
                         self.letter_locations.append((row + i, col))
                         if (row+i, col) in self.required_play_locations:
-                            del self.required_play_locations[(row+i,col)]
+                            self.required_play_locations.remove((row+i,col))
         else:
             return False
 
@@ -274,20 +274,20 @@ class ScrabbleBoard:
                     for i in range(num_squares):
                         col_eval = col + i
                         if self.board[row_eval][col_eval] in self.valid_play_contents:
-                            self.required_play_locations[(row_eval,col_eval)] = True
+                            self.required_play_locations.add((row_eval,col_eval))
                 # this code checks the squares before and after the word in the play direction
                 if j == -1:
                     col_eval = col+j
                     if col_eval < 0:
                         continue
                     elif self.board[row][col_eval] in self.valid_play_contents:
-                        self.required_play_locations[(row,col_eval)] = True
+                        self.required_play_locations.add((row,col_eval))
                 else:
                     col_eval = col+num_squares
                     if col_eval > 14:
                         continue
                     elif self.board[row][col_eval] in self.valid_play_contents:
-                        self.required_play_locations[(row,col_eval)] = True
+                        self.required_play_locations.add((row,col_eval))
 
             elif direction == 'down':
                 if col + j >= 0 and col + j <= 14:
@@ -295,20 +295,20 @@ class ScrabbleBoard:
                     for i in range(num_squares):
                         row_eval = row + i
                         if self.board[row_eval][col_eval] in self.valid_play_contents:
-                            self.required_play_locations[(row_eval,col_eval)] = True
+                            self.required_play_locations.add((row_eval,col_eval))
                 # this code checks the squares before and after the word in the play direction
                 if j == -1:
                     row_eval = row+j
                     if row_eval < 0:
                         continue
                     elif self.board[row_eval][col] in self.valid_play_contents:
-                        self.required_play_locations[(row_eval,col)] = True
+                        self.required_play_locations.add((row_eval,col))
                 else:
                     row_eval = row+num_squares
                     if row_eval > 14:
                         continue
                     elif self.board[row_eval][row_eval] in self.valid_play_contents:
-                        self.required_play_locations[(row_eval,col)] = True
+                        self.required_play_locations.add((row_eval,col))
             else:
                 raise ValueError("Direction must be 'across' or 'down'.")
 
