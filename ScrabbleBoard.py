@@ -294,6 +294,7 @@ class ScrabbleBoard:
         print("Final Score: ")
         for player in range(self.number_of_players):
             print("Player " + str(player+1) + ": " + str(self.player_scores[player]))
+        print("Total Points: " + str(sum(self.player_scores)))
         print("GAME OVER!!!!!!!!!!!!!!\
             \nPlayer " + str(self.player_scores.index(max(self.player_scores))+1) + " is the Winner!")
         # print the scores and stuff
