@@ -603,25 +603,25 @@ class ScrabbleBoard:
                 perp_col = perp_locations[i][1]
                 perp_dir = perp_locations[i][2]
                 perp_word = perp_word[0]
-                letter_multipliers, word_multipliers = self.get_multipliers(perp_row,\
-                                                                            perp_col,\
-                                                                            perp_word,\
+                letter_multipliers, word_multipliers = self.get_multipliers(perp_row,
+                                                                            perp_col,
+                                                                            perp_word,
                                                                             perp_dir)
-                perp_word, letters_from_hand = self.get_score_input(perp_row,\
-                                                                    perp_col,\
-                                                                    perp_dir,\
-                                                                    perp_word,\
+                perp_word, letters_from_hand = self.get_score_input(perp_row,
+                                                                    perp_col,
+                                                                    perp_dir,
+                                                                    perp_word,
                                                                     hand)
-                score += self.calculate_word_score(perp_word,\
-                                                    letter_multipliers,\
-                                                    word_multipliers,\
+                score += self.calculate_word_score(perp_word,
+                                                    letter_multipliers,
+                                                    word_multipliers,
                                                     len(letters_from_hand))
 
         letter_multipliers, word_multipliers = self.get_multipliers(row, col, word, direction)
         word, letters_from_hand = self.get_score_input(row, col, direction, word, hand)
-        score += self.calculate_word_score(word,\
-                                            letter_multipliers,\
-                                            word_multipliers,\
+        score += self.calculate_word_score(word,
+                                            letter_multipliers,
+                                            word_multipliers,
                                             len(letters_from_hand))
         return score, word, letters_from_hand
 

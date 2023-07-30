@@ -21,6 +21,22 @@ class Brute:
 
 
     def get_words(self, letters, prefix='', words=None, fixed_letter_indices=None, fixed_letters=None):
+        """gets all words given set of letters, prefixes and fixed letters
+
+        Args:
+            letters (List): list of letters to spell words with
+            prefix (str, optional): fixed prefix of word. Defaults to ''.
+            words (List[str], optional): list of valid words. Defaults to None.
+            fixed_letter_indices (list[int], optional): list of indices of fixed letters. Defaults to None.
+            fixed_letters (List[char], optional): list of fixed letters. Defaults to None.
+
+        Raises:
+            ValueError: if fixed letters indices and fixed letters aren't both populated
+            ValueError: if fixed letters indices and fixed letters aren't the same length
+
+        Returns:
+            List[str]: list of valid words
+        """        
         if bool(fixed_letter_indices) != bool(fixed_letters):
             raise ValueError("Both fixed_letter_indices and fixed_letters should be populated if populating one")
         if fixed_letter_indices and fixed_letters:
@@ -52,12 +68,29 @@ class Brute:
             new_letters.pop(i)
             if letter == ' ':
                 for wildcard in string.ascii_uppercase:
-                    self.get_words(new_letters, prefix + wildcard, words, fixed_letter_indices=fixed_letter_indices, fixed_letters=fixed_letters)
+                    self.get_words(new_letters,
+                                   prefix + wildcard, words,
+                                   fixed_letter_indices=fixed_letter_indices,
+                                   fixed_letters=fixed_letters)
             else:
-                self.get_words(new_letters, prefix + letter, words, fixed_letter_indices=fixed_letter_indices, fixed_letters=fixed_letters)
+                self.get_words(new_letters,
+                               prefix + letter,
+                               words,
+                               fixed_letter_indices=fixed_letter_indices,
+                               fixed_letters=fixed_letters)
         return words
 
     def get_prefixes(self, letters, prefix='', prefixes = None):
+        """gets all valid prefixes given set of letters
+
+        Args:
+            letters (List[char]): letters to form prefixes with
+            prefix (str, optional): fixed prefix to use. Defaults to ''.
+            prefixes (List[str], optional): list of valid prefixes. Defaults to None.
+
+        Returns:
+            List[str]: list of valid prefixes
+        """
         if prefixes is None:
             prefixes = set()
 
@@ -83,7 +116,8 @@ class Brute:
         Finds the best place to play a word from the given list of words.
 
         Returns:
-            tuple: A tuple containing the best word to play, its score, starting position (row, col), and direction.
+            tuple: A tuple containing the best word to play, its score, 
+                starting position (row, col), and direction.
         """
         best_word = None
         best_score = 0
@@ -221,8 +255,18 @@ class Brute:
                                 best_direction = direction
 
         return best_word, best_position, best_direction, best_letters_from_hand
-                                    
+
+
     def find_best_play_no_parallel(self):
+        """
+        Finds the best place to play a word from the given list of words.
+        will only find words that intersect at least one already placed
+        letter on the board
+
+        Returns:
+            tuple: A tuple containing the best word to play, its score,
+                starting position (row, col), and direction.
+        """
         best_word = None
         best_score = 0
         best_position = None
@@ -241,9 +285,19 @@ class Brute:
                 word = list(word)
                 row = 7
                 for col in range(7 - (len(word)-1), 8):
-                    letter_multipliers, word_multipliers = self.game.get_multipliers(row, col, word, 'across')
-                    score_word, letters_from_hand = self.game.get_score_input(row, col, 'across', word, self.hand)
-                    score = self.game.calculate_word_score(score_word, letter_multipliers, word_multipliers, len(letters_from_hand))
+                    letter_multipliers, word_multipliers = self.game.get_multipliers(row,
+                                                                                     col,
+                                                                                     word,
+                                                                                     'across')
+                    score_word, letters_from_hand = self.game.get_score_input(row,
+                                                                              col,
+                                                                              'across',
+                                                                              word,
+                                                                              self.hand)
+                    score = self.game.calculate_word_score(score_word,
+                                                           letter_multipliers,
+                                                           word_multipliers,
+                                                           len(letters_from_hand))
                     if score > best_score:
                         best_word = word
                         best_letters_from_hand = best_word
@@ -264,7 +318,7 @@ class Brute:
             # here you want to check both directions and all possible play locations
             searched_rows = []
             searched_cols = []
-            
+
             for i, item in enumerate(self.game.letter_locations):
                 row = item[0]
                 col = item[1]
@@ -276,7 +330,7 @@ class Brute:
                     # using prev_blank sets maxl to be the first letter in of the final string
                     # of connected letters in desired direction
                     prev_blank = -1
-                    # want to check to see if there are any intersecting letters in the play direction
+                    # check if there are any intersecting letters in the play direction
                     if direction == 'across':
                         if row not in searched_rows:
                             searched_rows.append(row)
@@ -308,7 +362,7 @@ class Brute:
                     # if no min is set, then there are no letters in this search space
                     if minl == 15:
                         continue
-                    
+
                     start = max(minl-7, 0)
                     if start > 0:
                         fl_ind = [x - start for x in fl_ind]
@@ -326,13 +380,14 @@ class Brute:
                             col = j
                         else:
                             row = j
-                        
-                        # TODO: there may be a faster way to form words here where you also account for the 
-                        # different directions and invalidate certain letters in certain positions or something
+
+                        # TODO: there may be a faster way to form words here where
+                        # you also account for the different directions and invalidate
+                        # certain letters in certain positions or something
                         # maybe could do something with suffixes
                         # TODO: check that the correct words are gotten
-                        
-                        # sorted prefix stuff makes it so you don't have to search through all prefixes
+
+                        # sorted prefix makes it so you don't have to search through all prefixes
                         words = []
                         if fl_ind[0] in sorted_prefixes:
                             for p in sorted_prefixes[fl_ind[0]]:
@@ -343,23 +398,32 @@ class Brute:
                                     else:
                                         ll_ind = letters_left.index(' ')
                                     letters_left = letters_left[:ll_ind] + letters_left[ll_ind+1:]
-                                words += self.get_words(letters_left, prefix=p, fixed_letter_indices=fl_ind, fixed_letters=fl_let)
+                                words += self.get_words(letters_left,
+                                                        prefix=p,
+                                                        fixed_letter_indices=fl_ind,
+                                                        fixed_letters=fl_let)
                         elif fl_ind[0] == 0:
-                            words += self.get_words(self.hand, fixed_letter_indices=fl_ind, fixed_letters=fl_let)
+                            words += self.get_words(self.hand,
+                                                    fixed_letter_indices=fl_ind,
+                                                    fixed_letters=fl_let)
                         # adding sorting here to have consistent ordering during search
                         words = sorted(words)
                         words = sorted(words, key=len)[::-1]
                         for word in words:
                             if self.game.can_play_word(row, col, word, direction):
-                                score, score_word, letters_from_hand = self.game.calculate_turn_score(\
-                                    row, col, word, self.hand, direction)
+                                score, score_word, letters_from_hand = \
+                                    self.game.calculate_turn_score(row,
+                                                                   col,
+                                                                   word,
+                                                                   self.hand,
+                                                                   direction)
                                 if score > best_score:
                                     best_word = word
                                     best_letters_from_hand = letters_from_hand
                                     best_score = score
                                     best_position = (row, col)
                                     best_direction = direction
-        
+
         return best_word, best_position, best_direction, best_letters_from_hand
 
     def do_turn(self):
@@ -373,7 +437,12 @@ class Brute:
             pre_points = self.game.get_player_scores()[self.number]
             print("hand was: " + str(self.hand))
             if word is not None:
-                self.game.place_word(position[0], position[1], word, direction, self.number, self.hand)
+                self.game.place_word(position[0],
+                                     position[1],
+                                     word,
+                                     direction,
+                                     self.number,
+                                     self.hand)
                 if not self.game.is_game_over:
                     self.game.display_board()
                     for letter in letters_from_hand:
@@ -386,7 +455,7 @@ class Brute:
             else:
                 self.game.display_board()
                 print("PASSED - no new letters")
-            
+
             if not self.game.is_game_over:
                 points = self.game.get_player_scores()[self.number] - pre_points
                 print("word: "+ str(word) + \
@@ -403,15 +472,15 @@ brute_2 = Brute(Game, 1, method=0)
 # brute_3 = Brute(Game, 2)
 # brute_4 = Brute(Game, 3)
 i = 0
-one = True
-two = True
-three = True
-four = True
+ONE = True
+TWO = True
+THREE = True
+FOUR = True
 start = time.time()
-while one and two and three and four:
-    one = brute_1.do_turn()
-    two = brute_2.do_turn()
-#     three = brute_3.do_turn()
-#     four = brute_4.do_turn()
+while ONE and TWO and THREE and FOUR:
+    ONE = brute_1.do_turn()
+    TWO = brute_2.do_turn()
+#     THREE = brute_3.do_turn()
+#     FOUR = brute_4.do_turn()
 end = time.time()
 print("game took: " + str(end - start) + " seconds")
