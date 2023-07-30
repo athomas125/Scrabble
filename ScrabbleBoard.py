@@ -80,7 +80,7 @@ class ScrabbleBoard:
         return self.player_scores
 
 
-    def update_Player_scores(self, player_index, score):
+    def update_player_scores(self, player_index, score):
         """updates the total score of a given player given a turn score
 
         Args:
@@ -207,16 +207,15 @@ class ScrabbleBoard:
                         self.board[row + i][col] = letter
                         self.letter_locations.append((row + i, col))
                         if (row+i, col) in self.valid_play_locations:
-                            del self.valid_play_locations[(row,col+i)]
+                            del self.valid_play_locations[(row+i,col)]
         else:
             return False
-        
-        # TODO add code that gets any new valid play locations
-        add_new_valid_locations(row, col, direction, len(word))
+
+        self.add_new_valid_locations(row, col, direction, len(word))
 
         self.is_first_turn = False
         self.player_scores[player] += score
-        
+
         if len(letters_from_hand) == len(hand):
             if self.get_num_letters_left() == 0:
                 print("Final Word: " + str(word))
@@ -243,14 +242,12 @@ class ScrabbleBoard:
         for j in [-1, 1]:
             if direction == 'across':
                 # this code checks the squares along the word perpendicular to the play direction
-                if row + j < 0 or row + j > 15:
-                    continue
-                else:
+                if row + j >= 0 and row + j <= 14:
                     row_eval = row + j
-                for i in range(num_squares):
-                    col_eval = col + i
-                if self.board[row_eval][col_eval] in self.valid_play_contents:
-                    self.valid_play_locations[(row_eval,col_eval)] = True
+                    for i in range(num_squares):
+                        col_eval = col + i
+                        if self.board[row_eval][col_eval] in self.valid_play_contents:
+                            self.valid_play_locations[(row_eval,col_eval)] = True
                 # this code checks the squares before and after the word in the play direction
                 if j == -1:
                     col_eval = col+j
@@ -260,20 +257,18 @@ class ScrabbleBoard:
                         self.valid_play_locations[(row,col_eval)] = True
                 else:
                     col_eval = col+num_squares
-                    if col_eval > 15:
+                    if col_eval > 14:
                         continue
                     elif self.board[row][col_eval] in self.valid_play_contents:
                         self.valid_play_locations[(row,col_eval)] = True
 
             elif direction == 'down':
-                if col + j < 0 or col + j > 15:
-                    continue
-                else:
+                if col + j >= 0 and col + j <= 14:
                     col_eval = col + j
-                for i in range(num_squares):
-                    row_eval = row + i
-                    if self.board[row_eval][col_eval] in self.valid_play_contents:
-                        self.valid_play_locations[(row_eval,col_eval)] = True
+                    for i in range(num_squares):
+                        row_eval = row + i
+                        if self.board[row_eval][col_eval] in self.valid_play_contents:
+                            self.valid_play_locations[(row_eval,col_eval)] = True
                 # this code checks the squares before and after the word in the play direction
                 if j == -1:
                     row_eval = row+j
@@ -283,7 +278,7 @@ class ScrabbleBoard:
                         self.valid_play_locations[(row_eval,col)] = True
                 else:
                     row_eval = row+num_squares
-                    if row_eval > 15:
+                    if row_eval > 14:
                         continue
                     elif self.board[row_eval][row_eval] in self.valid_play_contents:
                         self.valid_play_locations[(row_eval,col)] = True
