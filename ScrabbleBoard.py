@@ -38,7 +38,7 @@ class ScrabbleBoard:
         # a dictionary with a tuple as the key, where the tuple is the row and column of a
         # playable location on the board
         # initializing with 7,7 because you must start playing on the central square
-        self.valid_play_locations = {(7,7): True}
+        self.required_play_locations = {(7,7): True}
         # a list of board squares string values that are valid to play on top of
         self.valid_play_contents = {'3W': True, '3L': True, '2W': True, '2L': True, ' ': True}
         random.seed(seed)
@@ -199,15 +199,15 @@ class ScrabbleBoard:
                     if self.board[row][col + i] in self.valid_play_contents:
                         self.board[row][col + i] = letter
                         self.letter_locations.append((row, col + i))
-                        if (row, col+i) in self.valid_play_locations:
-                            del self.valid_play_locations[(row,col+i)]
+                        if (row, col+i) in self.required_play_locations:
+                            del self.required_play_locations[(row,col+i)]
             elif direction == 'down':
                 for i, letter in enumerate(word):
                     if self.board[row + i][col] in self.valid_play_contents:
                         self.board[row + i][col] = letter
                         self.letter_locations.append((row + i, col))
-                        if (row+i, col) in self.valid_play_locations:
-                            del self.valid_play_locations[(row+i,col)]
+                        if (row+i, col) in self.required_play_locations:
+                            del self.required_play_locations[(row+i,col)]
         else:
             return False
 
@@ -247,20 +247,20 @@ class ScrabbleBoard:
                     for i in range(num_squares):
                         col_eval = col + i
                         if self.board[row_eval][col_eval] in self.valid_play_contents:
-                            self.valid_play_locations[(row_eval,col_eval)] = True
+                            self.required_play_locations[(row_eval,col_eval)] = True
                 # this code checks the squares before and after the word in the play direction
                 if j == -1:
                     col_eval = col+j
                     if col_eval < 0:
                         continue
                     elif self.board[row][col_eval] in self.valid_play_contents:
-                        self.valid_play_locations[(row,col_eval)] = True
+                        self.required_play_locations[(row,col_eval)] = True
                 else:
                     col_eval = col+num_squares
                     if col_eval > 14:
                         continue
                     elif self.board[row][col_eval] in self.valid_play_contents:
-                        self.valid_play_locations[(row,col_eval)] = True
+                        self.required_play_locations[(row,col_eval)] = True
 
             elif direction == 'down':
                 if col + j >= 0 and col + j <= 14:
@@ -268,20 +268,20 @@ class ScrabbleBoard:
                     for i in range(num_squares):
                         row_eval = row + i
                         if self.board[row_eval][col_eval] in self.valid_play_contents:
-                            self.valid_play_locations[(row_eval,col_eval)] = True
+                            self.required_play_locations[(row_eval,col_eval)] = True
                 # this code checks the squares before and after the word in the play direction
                 if j == -1:
                     row_eval = row+j
                     if row_eval < 0:
                         continue
                     elif self.board[row_eval][col] in self.valid_play_contents:
-                        self.valid_play_locations[(row_eval,col)] = True
+                        self.required_play_locations[(row_eval,col)] = True
                 else:
                     row_eval = row+num_squares
                     if row_eval > 14:
                         continue
                     elif self.board[row_eval][row_eval] in self.valid_play_contents:
-                        self.valid_play_locations[(row_eval,col)] = True
+                        self.required_play_locations[(row_eval,col)] = True
             else:
                 raise ValueError("Direction must be 'across' or 'down'.")
 
@@ -349,14 +349,14 @@ class ScrabbleBoard:
             if col + len(word)-1 >= 15:
                 return False
             for i in range(len(word)):
-                if (row, col+i) in self.valid_play_locations:
+                if (row, col+i) in self.required_play_locations:
                     return True
         elif direction == 'down':
             # if the length of the word plus the starting position is out of bounds, return False
             if row + len(word)-1 >= 15:
                 return False
             for i in range(len(word)):
-                if (row+i, col) in self.valid_play_locations:
+                if (row+i, col) in self.required_play_locations:
                     return True
         else:
             raise ValueError("Direction must be 'across' or 'down'.")
