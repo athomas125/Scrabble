@@ -446,8 +446,8 @@ class Brute:
                 word, position, direction, letters_from_hand = self.find_best_play()
             else:
                 word, position, direction, letters_from_hand = self.find_best_play_no_parallel()
-            pre_points = self.game.get_player_scores()[self.number]
-            print("hand was: " + str(self.hand))
+            # pre_points = self.game.get_player_scores()[self.number]
+            # print("hand was: " + str(self.hand))
             if word is not None:
                 self.game.place_word(position[0],
                                      position[1],
@@ -456,33 +456,35 @@ class Brute:
                                      self.number,
                                      self.hand)
                 if not self.game.is_game_over:
-                    self.game.display_board()
+                    # self.game.display_board()
                     for letter in letters_from_hand:
                         if letter not in self.hand:
                             letter = ' '
                         index = self.hand.index(letter)
                         self.hand = self.hand[0:index] + self.hand[index + 1:]
                     self.hand += self.game.draw_letters(len(letters_from_hand))
-                    print("new hand" + str(self.hand))
-            else:
-                self.game.display_board()
-                print("PASSED - no new letters")
+            #         print("new hand" + str(self.hand))
+            # else:
+            #     self.game.display_board()
+            #     print("PASSED - no new letters")
 
-            if not self.game.is_game_over:
-                points = self.game.get_player_scores()[self.number] - pre_points
-                print("word: "+ str(word) + \
-                    "\nnumber of points this turn: " + str(points) + \
-                    "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))
+            # if not self.game.is_game_over:
+            #     points = self.game.get_player_scores()[self.number] - pre_points
+            #     print("word: "+ str(word) + \
+            #         "\nnumber of points this turn: " + str(points) + \
+            #         "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))
         else:
             self.playing = False
         return self.playing
 
 # initialize the board
-Game = ScrabbleBoard(2, seed=11)
-brute_1 = Brute(Game, 0, method=0)
-brute_2 = Brute(Game, 1, method=0)
-# brute_3 = Brute(Game, 2)
-# brute_4 = Brute(Game, 3)
+# times = []
+# for seed in range(10,20):
+Game = ScrabbleBoard(4, seed=11)
+brute_1 = Brute(Game, 0, method=1)
+brute_2 = Brute(Game, 1, method=1)
+brute_3 = Brute(Game, 2, method=1)
+brute_4 = Brute(Game, 3, method=0)
 i = 0
 ONE = True
 TWO = True
@@ -492,7 +494,8 @@ start = time.time()
 while ONE and TWO and THREE and FOUR:
     ONE = brute_1.do_turn()
     TWO = brute_2.do_turn()
-#     THREE = brute_3.do_turn()
-#     FOUR = brute_4.do_turn()
+    THREE = brute_3.do_turn()
+    FOUR = brute_4.do_turn()
 end = time.time()
-print("game took: " + str(end - start) + " seconds")
+#     times.append(end-start)
+# print(times)
