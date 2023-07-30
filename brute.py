@@ -180,8 +180,8 @@ class Brute:
                                     prev_blank = j
                     else:
                         continue
-                    # if no min is set, then you can't play in this space
-                    # this should never trigger because we are looping through playable spaces
+                    # if no min is set, then you can't play in this space or
+                    # the row/col has already been searched
                     if minl == 15:
                         continue
 
@@ -210,7 +210,7 @@ class Brute:
                         
                         # sorted prefix stuff makes it so you don't have to search through all prefixes
                         words = []
-                        if fl_ind[0] in sorted_prefixes:
+                        if len(fl_ind) > 0 and fl_ind[0] in sorted_prefixes:
                             for p in sorted_prefixes[fl_ind[0]]:
                                 letters_left = self.hand
                                 for char in p:
@@ -220,8 +220,10 @@ class Brute:
                                         ll_ind = letters_left.index(' ')
                                     letters_left = letters_left[:ll_ind] + letters_left[ll_ind+1:]
                                 words += self.get_words(letters_left, prefix=p, fixed_letter_indices=fl_ind, fixed_letters=fl_let)
-                        elif fl_ind[0] == 0:
+                        elif len(fl_ind) > 0 and fl_ind[0] == 0:
                             words += self.get_words(self.hand, fixed_letter_indices=fl_ind, fixed_letters=fl_let)
+                        else:
+                            words += self.get_words(self.hand)
                         # adding sorting here to have consistent ordering during search
                         words = sorted(words)
                         words = sorted(words, key=len)[::-1]
