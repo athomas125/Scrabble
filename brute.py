@@ -7,10 +7,11 @@ class Brute:
     """
     game player that uses a brute force method
     """
-    def __init__(self, game, number, hand=None):
+    def __init__(self, game, number, method=0, hand=None):
         self.game = game
         self.number = number
         self.playing = True
+        self.search_method = method
         # TODO: remove this once debugged
         if not hand:
             self.hand = self.game.draw_letters(7)
@@ -384,7 +385,10 @@ class Brute:
         """turn execution
         """
         if not self.game.is_game_over:
-            word, position, direction, letters_from_hand = self.find_best_play()
+            if self.search_method == 0:
+                word, position, direction, letters_from_hand = self.find_best_play()
+            else:
+                word, position, direction, letters_from_hand = self.find_best_play_no_parallel()
             pre_points = self.game.get_player_scores()[self.number]
             print("hand was: " + str(self.hand))
             if word is not None:
@@ -413,8 +417,8 @@ class Brute:
 
 # initialize the board
 Game = ScrabbleBoard(2, seed=11)
-brute_1 = Brute(Game, 0)
-brute_2 = Brute(Game, 1)
+brute_1 = Brute(Game, 0, method=0)
+brute_2 = Brute(Game, 1, method=0)
 # brute_3 = Brute(Game, 2)
 # brute_4 = Brute(Game, 3)
 i = 0
