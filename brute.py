@@ -7,7 +7,11 @@ class Brute:
     """
     game player that uses a brute force method
     """
-    def __init__(self, game, number, method=0, hand=None):
+    def __init__(self,
+                 game,
+                 number,
+                 method=0,
+                 hand=None):
         self.game = game
         self.number = number
         self.playing = True
@@ -20,7 +24,12 @@ class Brute:
             self.hand += self.game.draw_letters(7-len(hand))
 
 
-    def get_words(self, letters, prefix='', words=None, fixed_letter_indices=None, fixed_letters=None):
+    def get_words(self,
+                  letters,
+                  prefix='',
+                  words=None,
+                  fixed_letter_indices=None,
+                  fixed_letters=None):
         """gets all words given set of letters, prefixes and fixed letters
 
         Args:
@@ -80,7 +89,10 @@ class Brute:
                                fixed_letters=fixed_letters)
         return words
 
-    def get_prefixes(self, letters, prefix='', prefixes = None):
+    def get_prefixes(self,
+                     letters,
+                     prefix='',
+                     prefixes = None):
         """gets all valid prefixes given set of letters
 
         Args:
