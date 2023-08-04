@@ -36,6 +36,8 @@ class ScrabbleBoard:
         self.player_scores = [0] * number_of_players
         self.is_first_turn = True
         self.is_game_over = False
+        self.num_moves = 0
+        self.winner = -1
         # a list of tuples containing a the row and column locations of letters on the board
         self.letter_locations = []
         # a dictionary with a tuple as the key, where the tuple is the row and column of a
@@ -52,6 +54,8 @@ class ScrabbleBoard:
 
         with open('letter_distribution.json', 'r') as f:
             self.letters_to_draw_from = json.load(f)
+            # Flatten the dictionary into a list of letters
+            self.letters = [letter for letter, count in self.letters_to_draw_from.items() for _ in range(count)]
         with open('letter_points.json', 'r') as f:
             self.letter_scores = json.load(f)
 
@@ -119,13 +123,11 @@ class ScrabbleBoard:
         Raises:
             ValueError: If num_letters is greater than the total number of letters remaining.
         """
-        # Flatten the dictionary into a list of letters
-        letters = [letter for letter, count in self.letters_to_draw_from.items() for _ in range(count)]
 
-        if num_letters > len(letters):
-            num_letters = len(letters)
+        if num_letters > len(self.letters):
+            num_letters = len(self.letters)
 
-        drawn_letters = random.sample(letters, num_letters)
+        drawn_letters = random.sample(self.letters, num_letters)
 
         # Update the counts of the drawn letters
         for letter in drawn_letters:
@@ -146,6 +148,12 @@ class ScrabbleBoard:
         letters_left = [letter for letter, count in self.letters_to_draw_from.items() for _ in range(count)]
         return len(letters_left)
 
+
+    def get_num_moves(self):
+        return self.num_moves
+    
+    def get_winner(self):
+        return self.winner
 
     def get_multipliers(self,
                         row,
@@ -235,13 +243,14 @@ class ScrabbleBoard:
             return False
 
         self.add_new_valid_locations(row, col, direction, len(word))
+        self.num_moves += 1
 
         self.is_first_turn = False
         self.player_scores[player] += score
 
         if len(letters_from_hand) == len(hand):
             if self.get_num_letters_left() == 0:
-                print("Final Word: " + str(word))
+                # print("Final Word: " + str(word))
                 self.game_over()
                 return True
         else:
@@ -317,15 +326,16 @@ class ScrabbleBoard:
         """This function will be called when the game is complete
         """        
         self.is_game_over = True
-        self.display_board()
-        print("Final Score: ")
-        for player in range(self.number_of_players):
-            print("Player " + str(player+1) + ": " + str(self.player_scores[player]))
-        print("Total Points: " + str(sum(self.player_scores)))
-        print("GAME OVER!!!!!!!!!!!!!!\
-            \nPlayer "\
-            + str(self.player_scores.index(max(self.player_scores))+1)\
-            + " is the Winner!")
+        # self.display_board()
+        # print("Final Score: ")
+        # for player in range(self.number_of_players):
+        #     print("Player " + str(player+1) + ": " + str(self.player_scores[player]))
+        # print("Total Points: " + str(sum(self.player_scores)))
+        # print("GAME OVER!!!!!!!!!!!!!!\
+        #     \nPlayer "\
+        #     + str(self.player_scores.index(max(self.player_scores))+1)\
+        #     + " is the Winner!")
+        self.winner = self.player_scores.index(max(self.player_scores))+1
         # TODO: maybe add a highest scoring word
         # TODO: largest single turn differential
         # TODO: average letters placed per turn
