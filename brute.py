@@ -1,5 +1,4 @@
 from copy import deepcopy
-import time
 import string
 from ScrabbleBoard import ScrabbleBoard
 
@@ -15,7 +14,8 @@ class Brute:
         self.game = game
         self.number = number
         self.playing = True
-        self.search_method = method
+        self.search_method = method # 0 = find best play, 1 = find best play no parallel
+        self.letters_remaining = deepcopy(self.game.letters)
         # TODO: remove this once debugged
         if not hand:
             self.hand = self.game.draw_letters(7)
@@ -438,16 +438,157 @@ class Brute:
 
         return best_word, best_position, best_direction, best_letters_from_hand
 
+    def find_all_possible_plays(self):
+        """
+        finds all possible plays
+
+        Returns:
+            list[tuple]: A list of tuples containing the word to play, its score,
+                starting position (row, col), and direction.
+        """
+        out_tup = {}
+        # compute all words that are made out of our letters so that
+        # we have a set of prefixes to use to check for more words
+        prefixes = self.get_prefixes(self.hand)
+        sorted_prefixes = {}
+        for prefix in prefixes:
+            length = len(prefix)
+            if length not in sorted_prefixes:
+                sorted_prefixes[length] = []
+            sorted_prefixes[length].append(prefix)
+
+        # here you want to check both directions and all possible play locations
+        searched_rows = set()
+        searched_cols = set()
+        
+        for location in self.game.required_play_locations:
+            row = location[0]
+            col = location[1]
+            for direction in ['across', 'down']:
+                fl_ind = []
+                fl_let = []
+                minl = 15
+                maxl = -1
+                # using prev_blank sets maxl to be the first letter in of the final string
+                # of connected letters in desired direction
+                # want to check to see if there are any intersecting letters in the play direction
+                
+                # TODO: want to add some way to check the cross direction and narrow down the
+                # letters that can be played there, this should interface with fl_ind, want to
+                # loop through all of the combinations of letters in hand that can be played
+                prev_blank = -1
+                if direction == 'across':
+                    if row not in searched_rows:
+                        searched_rows.add(row)
+                        for j in range(15):
+                            if (row, j) in self.game.required_play_locations:
+                                if minl == 15:
+                                    minl = j
+                                maxl = j
+                                prev_blank = j
+                            elif self.game.board[row][j] not in self.game.valid_play_contents:
+                                fl_ind.append(j)
+                                fl_let.append(self.game.board[row][j])
+                                if minl == 15:
+                                    minl = j
+                                if j - prev_blank == 1:
+                                    maxl = j
+                            else:
+                                prev_blank = j
+                elif direction == 'down':
+                    if col not in searched_cols:
+                        searched_cols.add(col)
+                        for j in range(15):
+                            if (j, col) in self.game.required_play_locations:
+                                if minl == 15:
+                                    minl = j
+                                maxl = j
+                                prev_blank = j
+                            elif self.game.board[j][col] not in self.game.valid_play_contents:
+                                fl_ind.append(j)
+                                fl_let.append(self.game.board[j][col])
+                                if minl == 15:
+                                    minl = j
+                                if j - prev_blank == 1:
+                                    maxl = j
+                            else:
+                                prev_blank = j
+                else:
+                    continue
+                # if no min is set, then you can't play in this space or
+                # the row/col has already been searched
+                if minl == 15:
+                    continue
+                
+                if self.game.get_is_first_turn():
+                    start = max(minl-6, 0)
+                else:
+                    start = max(minl-7, 0)
+                if start > 0:
+                    fl_ind = [x - start for x in fl_ind]
+                for j in range(start, maxl+1):
+                    if j > start:
+                        # shift the index down by one because we are moving our start position
+                        # shift through continuous blocks of letters
+                        fl_ind = [x - 1 for x in fl_ind]
+                        if len(fl_ind) > 0 and fl_ind[0] < 0:
+                            del fl_ind[0]
+                            del fl_let[0]
+                            continue
+                    # Check if word can be played in this position
+                    if direction == 'across':
+                        col = j
+                    else:
+                        row = j
+                    
+                    # TODO: there may be a faster way to form words here where you also account for the 
+                    # different directions and invalidate certain letters in certain positions or something
+                    # maybe could do something with suffixes
+                    # TODO: check that the correct words are gotten
+                    
+                    # sorted prefix stuff makes it so you don't have to search through all prefixes
+                    words = []
+                    if len(fl_ind) > 0 and fl_ind[0] in sorted_prefixes:
+                        for p in sorted_prefixes[fl_ind[0]]:
+                            letters_left = self.hand
+                            for char in p:
+                                if char in letters_left:
+                                    ll_ind = letters_left.index(char)
+                                else:
+                                    ll_ind = letters_left.index(' ')
+                                letters_left = letters_left[:ll_ind] + letters_left[ll_ind+1:]
+                            words += self.get_words(letters_left, prefix=p, fixed_letter_indices=fl_ind, fixed_letters=fl_let)
+                    elif len(fl_ind) > 0 and fl_ind[0] == 0:
+                        words += self.get_words(self.hand, fixed_letter_indices=fl_ind, fixed_letters=fl_let)
+                    else:
+                        words += self.get_words(self.hand)
+                    # adding sorting here to have consistent ordering during search
+                    words = sorted(words)
+                    words = sorted(words, key=len)[::-1]
+                    for word in words:
+                        if self.game.can_play_word(row, col, word, direction):
+                            score, score_word, letters_from_hand = self.game.calculate_turn_score(\
+                                row, col, word, self.hand, direction)
+                            if score in out_tup:
+                                out_tup[score] += (word, letters_from_hand, (row, col), direction)
+                            else:
+                                out_tup[score] = (word, letters_from_hand, (row, col), direction)
+
+        return out_tup
+    
+
     def do_turn(self):
         """turn execution
         """
         if not self.game.is_game_over:
-            if self.search_method == 0:
-                word, position, direction, letters_from_hand = self.find_best_play()
-            else:
-                word, position, direction, letters_from_hand = self.find_best_play_no_parallel()
-            # pre_points = self.game.get_player_scores()[self.number]
-            # print("hand was: " + str(self.hand))
+            match self.search_method:
+                case 0:
+                    word, position, direction, letters_from_hand = self.find_best_play()
+                case 1:
+                    word, position, direction, letters_from_hand = self.find_best_play_no_parallel()
+                case 2:
+                    options = self.find_all_possible_plays()
+
             if word is not None:
                 self.game.place_word(position[0],
                                      position[1],
@@ -476,26 +617,3 @@ class Brute:
         else:
             self.playing = False
         return self.playing
-
-# initialize the board
-# times = []
-# for seed in range(10,20):
-Game = ScrabbleBoard(4, seed=11)
-brute_1 = Brute(Game, 0, method=1)
-brute_2 = Brute(Game, 1, method=1)
-brute_3 = Brute(Game, 2, method=1)
-brute_4 = Brute(Game, 3, method=0)
-i = 0
-ONE = True
-TWO = True
-THREE = True
-FOUR = True
-start = time.time()
-while ONE and TWO and THREE and FOUR:
-    ONE = brute_1.do_turn()
-    TWO = brute_2.do_turn()
-    THREE = brute_3.do_turn()
-    FOUR = brute_4.do_turn()
-end = time.time()
-#     times.append(end-start)
-# print(times)
