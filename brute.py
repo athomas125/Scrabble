@@ -1,4 +1,3 @@
-from copy import deepcopy
 import string
 from ScrabbleBoard import ScrabbleBoard
 
@@ -14,14 +13,26 @@ class Brute:
         self.game = game
         self.number = number
         self.playing = True
-        self.search_method = method # 0 = find best play, 1 = find best play no parallel
-        self.letters_remaining = deepcopy(self.game.letters)
-        # TODO: remove this once debugged
+        self.search_method = method # 0 = find best play, 1 = find best play no parallel, 2 = just return options
         if not hand:
             self.hand = self.game.draw_letters(7)
         else:
             self.hand = hand
-            self.hand += self.game.draw_letters(7-len(hand))
+        self.state = {}
+
+
+    def update_state(self):
+        self.state['board'] = self.game.board_state
+        self.state['letters_left'] = self.game.letters_not_on_board
+        self.state['letters_in_hand'] = [0]*27
+
+        for letter in self.hand:
+            if letter != ' ':
+                self.state['letters_left'][ord(letter)-64] -= 1
+                self.state['letters_in_hand'][ord(letter)-64] += 1
+            else:
+                self.state['letters_left'][0] -= 1
+                self.state['letters_in_hand'][0] += 1
 
 
     def get_words(self,
@@ -446,7 +457,7 @@ class Brute:
             list[tuple]: A list of tuples containing the word to play, its score,
                 starting position (row, col), and direction.
         """
-        out_tup = {}
+        out_tup = []
         # compute all words that are made out of our letters so that
         # we have a set of prefixes to use to check for more words
         prefixes = self.get_prefixes(self.hand)
@@ -569,13 +580,11 @@ class Brute:
                         if self.game.can_play_word(row, col, word, direction):
                             score, score_word, letters_from_hand = self.game.calculate_turn_score(\
                                 row, col, word, self.hand, direction)
-                            if score in out_tup:
-                                out_tup[score] += (word, letters_from_hand, (row, col), direction)
-                            else:
-                                out_tup[score] = (word, letters_from_hand, (row, col), direction)
+                            if score > 0:
+                                out_tup.append((score, word, letters_from_hand, (row, col), direction))
 
         return out_tup
-    
+
 
     def do_turn(self):
         """turn execution
@@ -583,11 +592,14 @@ class Brute:
         if not self.game.is_game_over:
             match self.search_method:
                 case 0:
-                    word, position, direction, letters_from_hand = self.find_best_play()
-                case 1:
                     word, position, direction, letters_from_hand = self.find_best_play_no_parallel()
+                case 1:
+                    word, position, direction, letters_from_hand = self.find_best_play()
                 case 2:
                     options = self.find_all_possible_plays()
+                    options = sorted(options, key=lambda tup: tup[0], reverse=True)
+                    self.update_state()
+                    return self.state, options
 
             if word is not None:
                 self.game.place_word(position[0],
@@ -597,23 +609,13 @@ class Brute:
                                      self.number,
                                      self.hand)
                 if not self.game.is_game_over:
-                    # self.game.display_board()
+                    self.game.display_board()
                     for letter in letters_from_hand:
                         if letter not in self.hand:
                             letter = ' '
                         index = self.hand.index(letter)
                         self.hand = self.hand[0:index] + self.hand[index + 1:]
                     self.hand += self.game.draw_letters(len(letters_from_hand))
-            #         print("new hand" + str(self.hand))
-            # else:
-            #     self.game.display_board()
-            #     print("PASSED - no new letters")
-
-            # if not self.game.is_game_over:
-            #     points = self.game.get_player_scores()[self.number] - pre_points
-            #     print("word: "+ str(word) + \
-            #         "\nnumber of points this turn: " + str(points) + \
-            #         "\nnumber of points: " + str(self.game.get_player_scores()[self.number]))
         else:
             self.playing = False
         return self.playing

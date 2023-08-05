@@ -47,6 +47,16 @@ class ScrabbleBoard:
         # a list of board squares string values that are valid to play on top of
         self.valid_play_contents = {'3W', '3L', '2W', '2L', ' '}
         random.seed(seed)
+        self.board_state = []
+        for i in range(15):
+            for j in range(15):
+                if self.board[i][j] in self.valid_play_contents:
+                    self.board_state.append(0)
+                if (i,j) in self.required_play_locations:
+                    self.board_state.append(1)
+                else:
+                    self.board_state.append(2)
+            
 
         # load the words from the dictionary file into the brute's brain
         self.dictionary = self.load_words_into_trie(dictionary)
@@ -55,9 +65,16 @@ class ScrabbleBoard:
         with open('letter_distribution.json', 'r') as f:
             self.letters_to_draw_from = json.load(f)
             # Flatten the dictionary into a list of letters
-            self.letters = [letter for letter, count in self.letters_to_draw_from.items() for _ in range(count)]
+            self.bag_list= [letter for letter, count in self.letters_to_draw_from.items() for _ in range(count)]
         with open('letter_points.json', 'r') as f:
             self.letter_scores = json.load(f)
+            
+        self.letters_not_on_board = [0]*27
+        for letter, count in self.letters_to_draw_from.items():
+            if letter != ' ':
+                self.letters_not_on_board[ord(letter)-64] = count
+            else:
+                self.letters_not_on_board[0] = count
 
 
     def load_words_into_trie(self,
@@ -124,16 +141,14 @@ class ScrabbleBoard:
             ValueError: If num_letters is greater than the total number of letters remaining.
         """
 
-        if num_letters > len(self.letters):
-            num_letters = len(self.letters)
+        if num_letters > len(self.bag_list):
+            num_letters = len(self.bag_list)
 
-        drawn_letters = random.sample(self.letters, num_letters)
+        drawn_letters = random.sample(self.bag_list, num_letters)
 
         # Update the counts of the drawn letters
         for letter in drawn_letters:
-            self.letters_to_draw_from[letter] -= 1
-            if self.letters_to_draw_from[letter] == 0:
-                del self.letters_to_draw_from[letter]  # remove the letter if there's no more left
+            self.bag_list = self.bag_list[0:self.bag_list.index(letter)] + self.bag_list[self.bag_list.index(letter)+1:]
 
         return drawn_letters
 
@@ -144,9 +159,7 @@ class ScrabbleBoard:
         Returns:
             int: number of letters left in the draw pile
         """
-        # Flatten the dictionary into a list of letters
-        letters_left = [letter for letter, count in self.letters_to_draw_from.items() for _ in range(count)]
-        return len(letters_left)
+        return len(self.bag_list)
 
 
     def get_num_moves(self):
@@ -210,7 +223,7 @@ class ScrabbleBoard:
                    player,
                    hand):
         """
-        Places a word on the Scrabble board.
+        Places a word on the Scrabble board. Also updates relevant state variables
 
         Args:
             row (int): The starting row to place the word.
@@ -223,12 +236,18 @@ class ScrabbleBoard:
         Returns:
             bool: True if the word was successfully placed, False otherwise.
         """
+        
         score, word, letters_from_hand = self.calculate_turn_score(row, col, word, hand, direction)
         if self.can_play_word(row, col, word, direction):
             if direction == 'across':
                 for i, letter in enumerate(word):
                     if self.board[row][col + i] in self.valid_play_contents:
                         self.board[row][col + i] = letter
+                        self.board_state[(row)*15+col+i] = 2
+                        if len(letter) > 1:
+                            self.letters_not_on_board[0] -= 1
+                        else:
+                            self.letters_not_on_board[ord(letter)-64] -= 1
                         self.letter_locations.append((row, col + i))
                         if (row, col+i) in self.required_play_locations:
                             self.required_play_locations.remove((row,col+i))
@@ -236,6 +255,12 @@ class ScrabbleBoard:
                 for i, letter in enumerate(word):
                     if self.board[row + i][col] in self.valid_play_contents:
                         self.board[row + i][col] = letter
+                        self.board_state[(row+i)*15+col] = 2
+                        if len(letter) > 1:
+                            self.letters_not_on_board[0] -= 1
+                        else:
+                            self.letters_not_on_board[ord(letter)-64] -= 1
+                        self.letter_locations.append((row, col + i))
                         self.letter_locations.append((row + i, col))
                         if (row+i, col) in self.required_play_locations:
                             self.required_play_locations.remove((row+i,col))
@@ -284,6 +309,7 @@ class ScrabbleBoard:
                         col_eval = col + i
                         if self.board[row_eval][col_eval] in self.valid_play_contents:
                             self.required_play_locations.add((row_eval,col_eval))
+                            self.board_state[row_eval*15 + col_eval] = 1
                 # this code checks the squares before and after the word in the play direction
                 if j == -1:
                     col_eval = col+j
@@ -291,12 +317,14 @@ class ScrabbleBoard:
                         continue
                     elif self.board[row][col_eval] in self.valid_play_contents:
                         self.required_play_locations.add((row,col_eval))
+                        self.board_state[row*15 + col_eval] = 1
                 else:
                     col_eval = col+num_squares
                     if col_eval > 14:
                         continue
                     elif self.board[row][col_eval] in self.valid_play_contents:
                         self.required_play_locations.add((row,col_eval))
+                        self.board_state[row*15 + col_eval] = 1
 
             elif direction == 'down':
                 if col + j >= 0 and col + j <= 14:
@@ -305,6 +333,7 @@ class ScrabbleBoard:
                         row_eval = row + i
                         if self.board[row_eval][col_eval] in self.valid_play_contents:
                             self.required_play_locations.add((row_eval,col_eval))
+                            self.board_state[row_eval*15 + col_eval] = 1
                 # this code checks the squares before and after the word in the play direction
                 if j == -1:
                     row_eval = row+j
@@ -312,12 +341,14 @@ class ScrabbleBoard:
                         continue
                     elif self.board[row_eval][col] in self.valid_play_contents:
                         self.required_play_locations.add((row_eval,col))
+                        self.board_state[row_eval*15 + col] = 1
                 else:
                     row_eval = row+num_squares
                     if row_eval > 14:
                         continue
                     elif self.board[row_eval][row_eval] in self.valid_play_contents:
                         self.required_play_locations.add((row_eval,col))
+                        self.board_state[row_eval*15 + col] = 1
             else:
                 raise ValueError("Direction must be 'across' or 'down'.")
 
