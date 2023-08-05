@@ -8,12 +8,10 @@ class Brute:
     def __init__(self,
                  game,
                  number,
-                 method=0,
                  hand=None):
         self.game = game
         self.number = number
         self.playing = True
-        self.search_method = method # 0 = find best play, 1 = find best play no parallel, 2 = just return options
         if not hand:
             self.hand = self.game.draw_letters(7)
         else:
@@ -586,11 +584,11 @@ class Brute:
         return out_tup
 
 
-    def do_turn(self):
+    def do_turn(self, method):
         """turn execution
         """
         if not self.game.is_game_over:
-            match self.search_method:
+            match method:
                 case 0:
                     word, position, direction, letters_from_hand = self.find_best_play_no_parallel()
                 case 1:
