@@ -39,7 +39,6 @@ def saveExample(state, lock):
             json.dump(config, f)
 
 def thread_func(move, move_num, game, players, player, depth, results_list, lock):
-    print("thread " + str(move_num) + " open")
     total_diff = 0
     for shuffle_num in range(10):
         n = len(players)
@@ -64,16 +63,16 @@ def thread_func(move, move_num, game, players, player, depth, results_list, lock
                 temp_players[-1].recycle_hand()
         for i in range(depth):
             for tp in range(n):
-                tp = (tp + player)%n
-                if i == 0 and tp == player:
-                    temp_players[tp].do_turn(move[1], move[2], move[3], move[4])
-                else:
-                    play = temp_players[tp].get_play(1)[0]
-                    temp_players[tp].do_turn(play[0], play[1], play[2], play[3])
+                if temp_game.winner < 0:
+                    tp = (tp + player)%n
+                    if i == 0 and tp == player:
+                        temp_players[tp].do_turn(move[1], move[2], move[3], move[4])
+                    else:
+                        play = temp_players[tp].get_play(1)[0]
+                        temp_players[tp].do_turn(play[0], play[1], play[2], play[3])
         final_diff = temp_game.player_scores[player] - sum(score for p, score in enumerate(temp_game.player_scores) if p != player)
         net_diff = final_diff - initial_diff
         total_diff += net_diff
-        print(move_num, shuffle_num, net_diff)
         state['reward'] = net_diff
         state['action'] = move
         saveExample(state, lock)
@@ -100,6 +99,7 @@ def simulate(game, players, player, depth=2):
         
     # After threads are done, analyze results_list to determine best move
     best_move_index = results_list.index(max(results_list))
+    print(best_move_index)
     return moves[best_move_index]
     
 
@@ -113,15 +113,19 @@ def main(loaded_trie, seed, methods):
         
     player = 0
     cnt = 0
-    while cnt < 2:
-    # while Game.winner < 0:
+    start = time.time()
+    while Game.winner < 0:
         if methods[player] == 2:
-            play = simulate(Game, players, player)
+            play = simulate(Game, players, player)[1:]
         else:
             play = players[player].get_play(methods[player])[0]
         players[player].do_turn(play[0], play[1], play[2], play[3])
         player = (player + 1) % n
         cnt += 1
+    end = time.time()
+    Game.display_board()
+    print(Game.player_scores)
+    print("time for one simulation: " + str(end-start))
 
 # load the words from the dictionary file into trie
 if os.path.isfile('trie.pkl'):
@@ -135,7 +139,7 @@ else:
 times_per_move = []
 times = []
 winners = []
-for seed in range(11,12):
+for seed in range(0,10):
     b1 = 1
     b2 = 2
     main(loaded_trie, seed, [b1, b2])
