@@ -16,7 +16,7 @@ class Brute:
             self.hand = self.game.draw_letters(7)
         else:
             self.hand = hand
-        self.state = {}
+        self.state = {'board': [], 'letters_left': [], 'letters_in_hand': [], 'reward': 0}
 
 
     def update_state(self):
@@ -31,6 +31,14 @@ class Brute:
             else:
                 self.state['letters_left'][0] -= 1
                 self.state['letters_in_hand'][0] += 1
+                
+    
+    def get_state(self):
+        return self.state
+    
+    
+    def update_game(self, game):
+        self.game = game
 
 
     def get_words(self,
@@ -70,7 +78,7 @@ class Brute:
             prefix += fixed_letters[fixed_letter_indices.index(len(prefix))][0]
 
         if prefix:
-            valid_word, valid_prefix = self.game.dictionary.search(prefix)
+            valid_word, valid_prefix = self.game._dictionary.search(prefix)
             if valid_word:
                 if len(fixed_letter_indices) == 0:
                     if prefix not in words:
@@ -116,7 +124,7 @@ class Brute:
             prefixes = set()
 
         if prefix:
-            valid_word, valid_prefix = self.game.dictionary.search(prefix)
+            valid_word, valid_prefix = self.game._dictionary.search(prefix)
             if not valid_prefix:
                 return prefixes
             else:
@@ -579,26 +587,31 @@ class Brute:
                             score, score_word, letters_from_hand = self.game.calculate_turn_score(\
                                 row, col, word, self.hand, direction)
                             if score > 0:
-                                out_tup.append((score, word, letters_from_hand, (row, col), direction))
+                                out_tup.append((score, word, (row, col), direction, letters_from_hand))
 
         return out_tup
 
 
-    def do_turn(self, method):
+    def get_play(self, method):
         """turn execution
         """
         if not self.game.is_game_over:
+            options = []
             match method:
                 case 0:
-                    word, position, direction, letters_from_hand = self.find_best_play_no_parallel()
+                    options.append(self.find_best_play_no_parallel())
                 case 1:
-                    word, position, direction, letters_from_hand = self.find_best_play()
+                    options.append(self.find_best_play())
                 case 2:
                     options = self.find_all_possible_plays()
                     options = sorted(options, key=lambda tup: tup[0], reverse=True)
-                    self.update_state()
-                    return self.state, options
+        else:
+            return ValueError("GAME IS OVER, YOU CAN'T KEEP PLAYING")
 
+        self.update_state()
+        return options
+
+    def do_turn(self, word, position, direction, letters_from_hand):
             if word is not None:
                 self.game.place_word(position[0],
                                      position[1],
@@ -607,13 +620,15 @@ class Brute:
                                      self.number,
                                      self.hand)
                 if not self.game.is_game_over:
-                    self.game.display_board()
+                    # self.game.display_board()
                     for letter in letters_from_hand:
                         if letter not in self.hand:
                             letter = ' '
                         index = self.hand.index(letter)
                         self.hand = self.hand[0:index] + self.hand[index + 1:]
                     self.hand += self.game.draw_letters(len(letters_from_hand))
-        else:
-            self.playing = False
-        return self.playing
+
+    def recycle_hand(self):
+        self.game.put_letters_back(self.hand)
+        self.hand = []
+        self.hand += self.game.draw_letters(7)

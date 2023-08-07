@@ -5,16 +5,19 @@ from Trie import Trie
 """
 
 class ScrabbleBoard:
+    _dictionary = None
     """
     Represents a Scrabble board.
     """
     def __init__(self,
                  number_of_players,
-                 seed=10,
-                 dictionary='Collins Scrabble Words (2019).txt'):
+                 loaded_trie,
+                 seed=10):
         """
         Initializes the Scrabble board as a 15x15 grid of empty squares, and the multiplier board.
         """
+        if ScrabbleBoard._dictionary is None and loaded_trie is not None:
+            ScrabbleBoard._dictionary = loaded_trie
         self.board = [
             ['3W', ' ', ' ', '2L', ' ', ' ', ' ', '3W', ' ', ' ', ' ', '2L', ' ', ' ', '3W'],
             [' ', '2W', ' ', ' ', ' ', '3L', ' ', ' ', ' ', '3L', ' ', ' ', ' ', '2W', ' '],
@@ -50,17 +53,13 @@ class ScrabbleBoard:
         self.board_state = []
         for i in range(15):
             for j in range(15):
-                if self.board[i][j] in self.valid_play_contents:
-                    self.board_state.append(0)
                 if (i,j) in self.required_play_locations:
                     self.board_state.append(1)
+                elif self.board[i][j] in self.valid_play_contents:
+                    self.board_state.append(0)
                 else:
                     self.board_state.append(2)
-            
-
-        # load the words from the dictionary file into the brute's brain
-        self.dictionary = self.load_words_into_trie(dictionary)
-
+        
 
         with open('letter_distribution.json', 'r') as f:
             self.letters_to_draw_from = json.load(f)
@@ -75,25 +74,6 @@ class ScrabbleBoard:
                 self.letters_not_on_board[ord(letter)-64] = count
             else:
                 self.letters_not_on_board[0] = count
-
-
-    def load_words_into_trie(self,
-                             file_name):
-        """
-        Reads words from a text file and inserts each word into the Trie.
-
-        Args:
-            file_name (str): The name of the file to read the words from.
-
-        Returns:
-            Trie: The Trie loaded with words.
-        """
-        trie = Trie()
-        with open(file_name, 'r') as file:
-            for line in file:
-                word = line.strip()  # remove newline character
-                trie.insert(word)
-        return trie
 
 
     def get_player_scores(self):
@@ -148,10 +128,31 @@ class ScrabbleBoard:
 
         # Update the counts of the drawn letters
         for letter in drawn_letters:
-            self.bag_list = self.bag_list[0:self.bag_list.index(letter)] + self.bag_list[self.bag_list.index(letter)+1:]
+            self.bag_list = self.bag_list[0:self.bag_list.index(letter)] \
+                + self.bag_list[self.bag_list.index(letter)+1:]
 
         return drawn_letters
 
+
+    def put_letters_back(self,
+               letters):
+        # this is just redrawing, putting all letters back THEN drawing again
+        while len(letters) > 0:
+            letter = letters.pop()
+            self.bag_list.append(letter)
+
+
+    def replace(self,
+                hand,
+                letters_to_replace):
+        # this is the redraw mechanic as implemented in scrabble
+        for letter in letters_to_replace:
+            if letter in hand:
+                hand = hand[0:hand.index(letter)] + hand[hand.index(letter)+1:]
+            else:
+                return ValueError("letters to replace must be in hand")
+        hand += self.draw_letters(len(letters_to_replace))
+        self.put_letters_back(letters_to_replace)
 
     def get_num_letters_left(self):
         """Returns the number of letters left in the draw pile
@@ -591,7 +592,7 @@ class ScrabbleBoard:
         return out, start
 
 
-    def check_validity(self,
+    def check_validity(cls,
                        words):
         """This checks whether a given word is in the dictionary, and hence valid
 
@@ -602,7 +603,7 @@ class ScrabbleBoard:
             bool: Whether or not the given word is valid
         """        
         for word in words:
-            valid_word = self.dictionary.search(word[0])
+            valid_word = cls._dictionary.search(word[0])
             if not valid_word[0]:
                 return False
         return True
