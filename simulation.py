@@ -66,6 +66,7 @@ def thread_func(move, move_num, game, players, player, depth, lock):
             print("time to copy player #" + str(ind) + " state: " + str(end-start))
             temp_players[-1].update_game(temp_game)
             temp_players[-1].recycle_hand()
+        start = time.time()
         for i in range(depth):
             for tp in range(n):
                 tp = (tp + player)%n
@@ -74,6 +75,8 @@ def thread_func(move, move_num, game, players, player, depth, lock):
                 else:
                     play = temp_players[tp].get_play(1)
                     temp_players[tp].do_turn(play[0], play[1], play[2], play[3])
+        end = time.time()
+        print("time to do full turn cycle of " + str(depth) + " turns: " + str(end-start))
         final_diff = temp_game.player_scores[player] - sum(score for p, score in temp_game.player_scores.items() if p != player)
         net_diff = initial_diff - final_diff
         print(move_num, shuffle_num, net_diff)
