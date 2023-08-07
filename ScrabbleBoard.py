@@ -276,7 +276,11 @@ class ScrabbleBoard:
 
         if len(letters_from_hand) == len(hand):
             if self.get_num_letters_left() == 0:
-                # print("Final Word: " + str(word))
+                # TODO: add logic here that correctly computes the final score
+                # Unplayed Letters: When the game ends, each player's score is
+                # reduced by the sum of his or her unplayed letters. In addition,
+                # if a player has used all of his or her letters, the sum of the
+                # other players' unplayed letters is added to that player's score.
                 self.game_over()
                 return True
         else:
@@ -358,15 +362,6 @@ class ScrabbleBoard:
         """This function will be called when the game is complete
         """        
         self.is_game_over = True
-        # self.display_board()
-        # print("Final Score: ")
-        # for player in range(self.number_of_players):
-        #     print("Player " + str(player+1) + ": " + str(self.player_scores[player]))
-        # print("Total Points: " + str(sum(self.player_scores)))
-        # print("GAME OVER!!!!!!!!!!!!!!\
-        #     \nPlayer "\
-        #     + str(self.player_scores.index(max(self.player_scores))+1)\
-        #     + " is the Winner!")
         self.winner = self.player_scores.index(max(self.player_scores))+1
         # TODO: maybe add a highest scoring word
         # TODO: largest single turn differential
